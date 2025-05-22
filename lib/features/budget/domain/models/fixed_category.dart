@@ -56,7 +56,7 @@ class FixedCategory {
     FixedCategory(
       id: 'housing',
       name: 'Vivienda',
-      legend: 'Arriendo, administración, servicios públicos, internet fijo, mantenimiento',
+      legend: 'Arriendo, administración, servicios públicos, internet fijo, mantenimiento, hijos, padres, mascotas',
       iconName: 'home',
       color: Colors.blue,
       type: FixedTransactionType.expense,
@@ -80,7 +80,7 @@ class FixedCategory {
     FixedCategory(
       id: 'personal_services',
       name: 'Servicios Personales',
-      legend: 'Plan de datos, gimnasio, suscripciones, belleza, educación',
+      legend: 'Plan de datos, gimnasio, suscripciones, belleza, educación, compras',
       iconName: 'person',
       color: Colors.pink,
       type: FixedTransactionType.expense,
@@ -88,7 +88,7 @@ class FixedCategory {
     FixedCategory(
       id: 'financial_obligations',
       name: 'Obligaciones Financieras',
-      legend: 'Tarjetas, préstamos, seguros, fondos, inversiones corto plazo',
+      legend: 'Tarjetas de credito, creditos, seguros',
       iconName: 'credit_card',
       color: Colors.indigo,
       type: FixedTransactionType.expense,

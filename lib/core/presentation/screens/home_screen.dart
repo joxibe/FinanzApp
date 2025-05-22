@@ -9,6 +9,7 @@ import 'package:finanz_app/features/reports/presentation/screens/reports_screen.
 import 'package:finanz_app/features/summary/presentation/screens/summary_screen.dart';
 import 'package:finanz_app/core/presentation/screens/onboarding_screen.dart';
 import 'dart:async';
+import 'dart:math' as math;
 
 class AdHelper {
   // IDs de producción de AdMob
@@ -36,14 +37,29 @@ class _HomeScreenState extends State<HomeScreen> {
   InterstitialAd? _interstitialAd;
   bool _isInterstitialAdReady = false;
   int _interstitialAdAttempts = 0;
-  static const int maxInterstitialAttempts = 3;
+  int _bannerAdAttempts = 0;
+  static const int maxAttempts = 3;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
-    _loadBannerAd();
-    _loadInterstitialAd();
+    
+    // Configuración de anuncios para producción
+    MobileAds.instance.updateRequestConfiguration(
+      RequestConfiguration(
+        tagForChildDirectedTreatment: TagForChildDirectedTreatment.unspecified,
+        testDeviceIds: [],
+      ),
+    );
+    
+    // Primer intento de carga de anuncios con delay
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        _loadBannerAd();
+        _loadInterstitialAd();
+      }
+    });
   }
 
   @override
@@ -56,33 +72,54 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadBannerAd() {
-    _bannerAd = BannerAd(
-      adUnitId: AdHelper.bannerAdUnitId,
-      request: const AdRequest(),
-      size: AdSize.banner,
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          if (mounted) {
-            setState(() {
-              _isBannerAdReady = true;
-            });
-          }
-        },
-        onAdFailedToLoad: (ad, error) {
-          _isBannerAdReady = false;
-          ad.dispose();
-          
-          Timer(const Duration(seconds: 30), () {
-            if (mounted) _loadBannerAd();
-          });
-        },
-      ),
-    );
+    if (_bannerAdAttempts >= maxAttempts) {
+      debugPrint('Máximo número de intentos de carga de banner alcanzado');
+      return;
+    }
 
-    _bannerAd!.load();
+    try {
+      _bannerAd = BannerAd(
+        adUnitId: AdHelper.bannerAdUnitId,
+        request: const AdRequest(),
+        size: AdSize.banner,
+        listener: BannerAdListener(
+          onAdLoaded: (ad) {
+            if (mounted) {
+              setState(() {
+                _isBannerAdReady = true;
+                _bannerAdAttempts = 0; // Resetear intentos si se carga exitosamente
+              });
+            }
+          },
+          onAdFailedToLoad: (ad, error) {
+            debugPrint('Banner ad failed to load: ${error.message}');
+            _isBannerAdReady = false;
+            ad.dispose();
+            
+            _bannerAdAttempts++;
+            if (_bannerAdAttempts < maxAttempts) {
+              // Reintento con backoff exponencial
+              Timer(Duration(seconds: math.min(30, 5 * _bannerAdAttempts)), () {
+                if (mounted) _loadBannerAd();
+              });
+            }
+          },
+        ),
+      );
+
+      _bannerAd!.load();
+    } catch (e) {
+      debugPrint('Error al inicializar banner ad: $e');
+      _bannerAdAttempts++;
+    }
   }
 
   void _loadInterstitialAd() {
+    if (_interstitialAdAttempts >= maxAttempts) {
+      debugPrint('Máximo número de intentos de carga de intersticial alcanzado');
+      return;
+    }
+
     if (_interstitialAd != null) {
       _interstitialAd!.dispose();
       _interstitialAd = null;
@@ -95,14 +132,12 @@ class _HomeScreenState extends State<HomeScreen> {
         onAdLoaded: (ad) {
           _interstitialAd = ad;
           _isInterstitialAdReady = true;
-          _interstitialAdAttempts = 0;
+          _interstitialAdAttempts = 0; // Resetear intentos si se carga exitosamente
           
           _interstitialAd!.setImmersiveMode(true);
           
           _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-            onAdShowedFullScreenContent: (ad) {
-              // Ya no necesitamos actualizar _lastInterstitialShown
-            },
+            onAdShowedFullScreenContent: (ad) {},
             onAdDismissedFullScreenContent: (ad) {
               ad.dispose();
               if (mounted) {
@@ -114,6 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _loadInterstitialAd();
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
+              debugPrint('Intersticial failed to show: ${error.message}');
               ad.dispose();
               if (mounted) {
                 setState(() {
@@ -126,11 +162,12 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
         onAdFailedToLoad: (error) {
+          debugPrint('Intersticial ad failed to load: ${error.message}');
           _isInterstitialAdReady = false;
           _interstitialAdAttempts++;
           
-          if (_interstitialAdAttempts <= maxInterstitialAttempts) {
-            Timer(Duration(seconds: 10 * _interstitialAdAttempts), () {
+          if (_interstitialAdAttempts < maxAttempts) {
+            Timer(Duration(seconds: math.min(30, 5 * _interstitialAdAttempts)), () {
               if (mounted) _loadInterstitialAd();
             });
           }
@@ -149,44 +186,6 @@ class _HomeScreenState extends State<HomeScreen> {
     
     if (_isInterstitialAdReady && _interstitialAd != null) {
       _interstitialAd!.show();
-    } else {
-      _showPlaceholderInterstitial();
-    }
-  }
-
-  void _showPlaceholderInterstitial() async {
-    if (!mounted) return;
-    
-    setState(() {
-      _isShowingInterstitial = true;
-    });
-    
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        Future.delayed(const Duration(seconds: 5), () {
-          if (mounted && Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
-          }
-        });
-        return AlertDialog(
-          title: const Text('Publicidad'),
-          content: const Text('Aquí se mostrará un video publicitario obligatorio.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cerrar'),
-            ),
-          ],
-        );
-      },
-    );
-    
-    if (mounted) {
-      setState(() {
-        _isShowingInterstitial = false;
-      });
     }
   }
 
@@ -313,28 +312,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: _bannerAd!.size.width.toDouble(),
                   height: _bannerAd!.size.height.toDouble(),
                   child: AdWidget(ad: _bannerAd!),
-                )
-              else
-                Container(
-                  width: double.infinity,
-                  height: 60,
-                  color: Colors.amber[200],
-                  alignment: Alignment.center,
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      SizedBox(width: 10),
-                      Text(
-                        'Cargando anuncio...',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
                 ),
               // Contenido principal
               Expanded(

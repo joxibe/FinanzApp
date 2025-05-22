@@ -540,7 +540,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ];
           potentialSaving = total * 0.15;
           break;
-        case 'entretenimiento y ocio':
+        case 'entretenimiento':
           suggestions = [
             '• Alterna actividades gratuitas o de bajo costo con salidas especiales que realmente disfrutes',
             '• Aprovecha descuentos y promociones para cine, teatro o conciertos sin dejar de divertirte',
@@ -548,7 +548,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ];
           potentialSaving = total * 0.2;
           break;
-        case 'transporte y movilidad':
+        case 'transporte':
           suggestions = [
             '• Usa apps para compartir viajes y conoce nuevas personas mientras ahorras',
             '• Camina o usa bicicleta si puedes, es bueno para tu salud y tu bolsillo',
@@ -569,22 +569,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
             '• Optimiza tus consumos para tener más dinero libre sin sacrificar comodidad',
             '• Evalúa cambiar de proveedor si puedes mejorar el servicio y pagar menos',
             '• Apóyate en la tecnología para controlar el gasto y mejorar tu calidad de vida'
-          ];
-          potentialSaving = total * 0.1;
-          break;
-        case 'salud y bienestar':
-          suggestions = [
-            '• Invierte en tu bienestar con hábitos saludables que no cuesten mucho',
-            '• Disfruta de actividades como yoga, caminatas o meditación que pueden ser gratuitas',
-            '• Aprovecha los beneficios de tu seguro o EPS para chequeos preventivos sin gastar de más'
-          ];
-          potentialSaving = total * 0.1;
-          break;
-        case 'educación y desarrollo':
-          suggestions = [
-            '• El conocimiento es una inversión: aprovecha recursos gratuitos y pagos que valgan la pena',
-            '• Compartir cursos o materiales con otros puede hacer que aprender sea más accesible y social',
-            '• Busca descuentos, becas o alternativas online que se adapten a tu ritmo y presupuesto'
           ];
           potentialSaving = total * 0.1;
           break;
@@ -929,12 +913,18 @@ class _StatisticsCard extends StatelessWidget {
       'Alimentación',
       'Servicios básicos',
       'Transporte',
+      'Salud',
+      'Hijos',
+      'Padres',
+      'Mascotas',
     ],
     'Gastos Personales (30%)': [
       'Entretenimiento',
       'Compras',
       'Suscripciones',
-      'Ocio',
+      'Educacion',
+      'Tarjetas de credito',
+      'Creditos',
     ],
     'Ahorro e Inversión (20%)': [
       'Fondo de emergencia',
@@ -986,7 +976,8 @@ class _StatisticsCard extends StatelessWidget {
             }
             // Gastos Personales (30%)
             else if (transaction.category.id == 'personal_services' || // Servicios Personales
-                     transaction.category.id == 'other_fixed') { // Otros Gastos Fijos
+                     transaction.category.id == 'other_fixed' || // Otros Gastos Fijos
+                     transaction.category.id == 'financial_obligations') { // Obligaciones Financieras
               gastosPersonales += transaction.amount;
             }
             // Ahorro e Inversión (20%) - No hay categorías específicas para esto
@@ -1150,6 +1141,26 @@ class _StatisticsCard extends StatelessWidget {
                                         name: 'Transporte',
                                         description: 'Gasolina, transporte público y mantenimiento del vehículo',
                                       ),
+                                      _CategoryLegendItem(
+                                        icon: Icons.medical_services,
+                                        name: 'Salud',
+                                        description: 'Medicina prepagada, medicamentos, consultas, exámenes, odontología',
+                                      ),
+                                      _CategoryLegendItem(
+                                        icon: Icons.person,
+                                        name: 'Hijos',
+                                        description: 'Educación, cuidado, vestimenta, alimentación',
+                                      ),
+                                      _CategoryLegendItem(
+                                        icon: Icons.personal_injury,
+                                        name: 'Padres',
+                                        description: 'Cuidado, vestimenta, alimentación, regalos',
+                                      ),
+                                      _CategoryLegendItem(
+                                        icon: Icons.pets,
+                                        name: 'Mascotas',
+                                        description: 'Cuidado, alimentación, veterinaria',
+                                      ),
                                       const SizedBox(height: 16),
                                       Container(
                                         padding: const EdgeInsets.all(12),
@@ -1206,9 +1217,14 @@ class _StatisticsCard extends StatelessWidget {
                                         description: 'Servicios premium, membresías y suscripciones digitales',
                                       ),
                                       _CategoryLegendItem(
-                                        icon: Icons.sports_esports,
-                                        name: 'Ocio',
-                                        description: 'Hobbies, deportes, viajes y actividades sociales',
+                                        icon: Icons.credit_card,
+                                        name: 'Tarjeas de credito',
+                                        description: 'Imprevistos, compras anticipadas, viajes',
+                                      ),
+                                      _CategoryLegendItem(
+                                        icon: Icons.monetization_on,
+                                        name: 'Creditos',
+                                        description: 'Moto, carro, casa',
                                       ),
                                       const SizedBox(height: 16),
                                       Container(

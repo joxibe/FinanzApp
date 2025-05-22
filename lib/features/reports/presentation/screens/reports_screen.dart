@@ -145,6 +145,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
   DateTime _selectedDate = DateTime.now();
   bool _isAnnualView = false;
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   List<int> _getAvailableYears(AppState appState) {
     final Set<int> years = {};
     final currentYear = DateTime.now().year;
@@ -238,8 +243,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
               selectedDate: _selectedDate,
               isAnnualView: _isAnnualView,
             ),
-            const SizedBox(height: 16),
-            _buildExportButton(context),
           ],
         ),
       ),
@@ -496,38 +499,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return months.toList();
   }
 
-  Widget _buildExportButton(BuildContext context) {
-    return Column(
-      children: [
-        Center(
-          child: FilledButton.icon(
-            onPressed: () {
-              // TODO: Implementar exportación a Excel
-            },
-            icon: const Icon(Icons.download),
-            label: const Text('Exportar a Excel'),
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 16,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Center(
-          child: Text(
-            'Se requiere ver un video publicitario para exportar',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontStyle: FontStyle.italic,
-                ),
-          ),
-        ),
-      ],
-    );
-  }
-
   void _showGastosHormigaAnalysis(BuildContext context, AppState appState, DateTime selectedDate, bool isAnnualView) {
     // Obtener transacciones hormiga según la vista seleccionada
     final filteredTransactions = appState.antTransactions.where((t) {
@@ -563,68 +534,69 @@ class _ReportsScreenState extends State<ReportsScreen> {
       switch (category.toLowerCase()) {
         case 'alimentación y bebidas':
           suggestions = [
-            '• Planifica tus comidas semanales y haz una lista de compras',
-            '• Cocina en casa y lleva tu almuerzo al trabajo',
-            '• Aprovecha las ofertas de temporada y compra al por mayor'
+            '• Planifica tus comidas para ahorrar y aún darte el gusto de salir a comer de vez en cuando',
+            '• Disfruta cocinar en casa como una experiencia creativa, e invita a alguien para hacerlo más especial',
+            '• Compra inteligentemente: productos de temporada y al por mayor sin dejar de darte antojos ocasionales'
           ];
-          potentialSaving = total * 0.2;
+          potentialSaving = total * 0.15;
           break;
         case 'entretenimiento y ocio':
           suggestions = [
-            '• Busca actividades gratuitas en tu comunidad',
-            '• Aprovecha los días de descuento en cines y eventos',
-            '• Considera suscripciones familiares o grupales'
+            '• Alterna actividades gratuitas o de bajo costo con salidas especiales que realmente disfrutes',
+            '• Aprovecha descuentos y promociones para cine, teatro o conciertos sin dejar de divertirte',
+            '• Elige experiencias significativas que te llenen de recuerdos más que de gastos'
           ];
-          potentialSaving = total * 0.3;
+          potentialSaving = total * 0.2;
           break;
         case 'transporte y movilidad':
           suggestions = [
-            '• Usa aplicaciones para compartir viajes',
-            '• Combina transporte público con caminata',
-            '• Mantén tu vehículo en buen estado para evitar reparaciones'
+            '• Usa apps para compartir viajes y conoce nuevas personas mientras ahorras',
+            '• Camina o usa bicicleta si puedes, es bueno para tu salud y tu bolsillo',
+            '• Mantén tu vehículo en buen estado para evitar gastos inesperados y viajar con tranquilidad'
           ];
           potentialSaving = total * 0.15;
           break;
         case 'compras personales':
           suggestions = [
-            '• Espera las temporadas de rebajas para compras grandes',
-            '• Implementa la regla de espera de 24 horas',
-            '• Prioriza calidad sobre cantidad en artículos duraderos'
+            '• Disfruta de comprar, pero con intención: prioriza artículos que realmente te hagan feliz',
+            '• Espera eventos de descuentos para darte un gusto sin culpa',
+            '• Usa la regla de 24 horas para pensar si realmente quieres algo o es un impulso'
           ];
-          potentialSaving = total * 0.25;
+          potentialSaving = total * 0.2;
           break;
         case 'servicios básicos':
           suggestions = [
-            '• Compara tarifas de servicios regularmente',
-            '• Aprovecha descuentos por pago anticipado',
-            '• Optimiza el consumo de energía y agua'
+            '• Optimiza tus consumos para tener más dinero libre sin sacrificar comodidad',
+            '• Evalúa cambiar de proveedor si puedes mejorar el servicio y pagar menos',
+            '• Apóyate en la tecnología para controlar el gasto y mejorar tu calidad de vida'
           ];
           potentialSaving = total * 0.1;
           break;
         case 'salud y bienestar':
           suggestions = [
-            '• Busca opciones de ejercicio gratuitas o económicas',
-            '• Aprovecha los beneficios de tu seguro de salud',
-            '• Prioriza la prevención sobre el tratamiento'
+            '• Invierte en tu bienestar con hábitos saludables que no cuesten mucho',
+            '• Disfruta de actividades como yoga, caminatas o meditación que pueden ser gratuitas',
+            '• Aprovecha los beneficios de tu seguro o EPS para chequeos preventivos sin gastar de más'
           ];
-          potentialSaving = total * 0.15;
+          potentialSaving = total * 0.1;
           break;
         case 'educación y desarrollo':
           suggestions = [
-            '• Explora recursos educativos gratuitos en línea',
-            '• Busca becas y descuentos para cursos',
-            '• Comparte costos de materiales con otros estudiantes'
+            '• El conocimiento es una inversión: aprovecha recursos gratuitos y pagos que valgan la pena',
+            '• Compartir cursos o materiales con otros puede hacer que aprender sea más accesible y social',
+            '• Busca descuentos, becas o alternativas online que se adapten a tu ritmo y presupuesto'
           ];
           potentialSaving = total * 0.1;
           break;
         default:
           suggestions = [
-            '• Revisa tus gastos frecuentes en esta categoría',
-            '• Establece un presupuesto mensual específico',
-            '• Busca alternativas más económicas'
+            '• Reflexiona sobre cómo ese gasto contribuye a tu felicidad o desarrollo',
+            '• Establece un presupuesto flexible que te permita disfrutar sin excederte',
+            '• Siempre hay formas de mejorar sin dejar de vivir bien'
           ];
-          potentialSaving = total * 0.15;
+          potentialSaving = total * 0.1;
       }
+
 
       categoryAnalysis.add({
         'category': category,
@@ -1008,16 +980,12 @@ class _StatisticsCard extends StatelessWidget {
             // Necesidades Básicas (50%)
             if (transaction.category.id == 'housing' || // Vivienda
                 transaction.category.id == 'main_food' || // Alimentación Principal
-                transaction.category.id == 'basic_services' || // Servicios Básicos
                 transaction.category.id == 'main_transport' || // Transporte Principal
-                transaction.category.id == 'health' || // Salud
-                transaction.category.id == 'education') { // Educación
+                transaction.category.id == 'health') { // Salud
               necesidadesBasicas += transaction.amount;
             }
             // Gastos Personales (30%)
-            else if (transaction.category.id == 'entertainment' || // Entretenimiento
-                     transaction.category.id == 'personal_shopping' || // Compras Personales
-                     transaction.category.id == 'subscriptions' || // Suscripciones
+            else if (transaction.category.id == 'personal_services' || // Servicios Personales
                      transaction.category.id == 'other_fixed') { // Otros Gastos Fijos
               gastosPersonales += transaction.amount;
             }
@@ -1165,7 +1133,7 @@ class _StatisticsCard extends StatelessWidget {
                                       _CategoryLegendItem(
                                         icon: Icons.home,
                                         name: 'Vivienda',
-                                        description: 'Alquiler, hipoteca, servicios básicos y mantenimiento',
+                                        description: 'Arriendo, administracion, hipoteca, servicios publicos, internet fijo y mantenimiento',
                                       ),
                                       _CategoryLegendItem(
                                         icon: Icons.restaurant,
@@ -1967,12 +1935,14 @@ class _CategoryExpensesCard extends StatelessWidget {
                           value: cat['amount'] as double,
                           title: '${(cat['percentage'] as double).toStringAsFixed(1)}%',
                           radius: 60,
-                          titleStyle: const TextStyle(
+                          titleStyle: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black87,
                           ),
-                          titlePositionPercentageOffset: 1.2, // Mueve el título fuera del sector
+                          titlePositionPercentageOffset: 1.35, // Más separado del sector
                           badgeWidget: null,
                         ),
                     ],

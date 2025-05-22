@@ -1,5 +1,7 @@
 import 'package:uuid/uuid.dart';
+import 'package:flutter/material.dart';
 import 'fixed_category.dart';
+import 'package:finanz_app/core/utils/icon_helper.dart';
 
 /// Modelo que representa una transacción fija (gasto o ingreso)
 class FixedTransaction {
@@ -76,6 +78,24 @@ class FixedTransaction {
       'dayOfMonth': dayOfMonth,
     };
   }
+  
+  /// Convertir a JSON para exportación de datos
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'description': description,
+      'amount': amount,
+      'date': date.toIso8601String(),
+      'dayOfMonth': dayOfMonth,
+      'category': {
+        'id': category.id,
+        'name': category.name,
+        'icon': category.icon.codePoint,
+        'color': category.color.value,
+      },
+      'type': type == FixedTransactionType.income ? 'income' : 'expense',
+    };
+  }
 
   /// Crear una transacción desde un mapa
   factory FixedTransaction.fromMap(Map<String, dynamic> map) {
@@ -107,6 +127,29 @@ class FixedTransaction {
       date: DateTime.now(),
       type: FixedTransactionType.expense,
       dayOfMonth: DateTime.now().day,
+    );
+  }
+
+  /// Crear una transacción desde JSON
+  factory FixedTransaction.fromJson(Map<String, dynamic> json) {
+    final categoryJson = json['category'] as Map<String, dynamic>;
+    final category = FixedCategory(
+      id: categoryJson['id'] as String,
+      name: categoryJson['name'] as String,
+      legend: categoryJson['legend'] as String? ?? 'Sin descripción',
+      iconName: IconHelper.getIconNameByCodePoint(categoryJson['icon'] as int),
+      color: Color(categoryJson['color'] as int),
+      type: categoryJson['type'] == 'income' ? FixedTransactionType.income : FixedTransactionType.expense,
+    );
+
+    return FixedTransaction(
+      id: json['id'] as String,
+      description: json['description'] as String,
+      amount: json['amount'] as double,
+      date: DateTime.parse(json['date'] as String),
+      category: category,
+      type: json['type'] == 'income' ? FixedTransactionType.income : FixedTransactionType.expense,
+      dayOfMonth: json['dayOfMonth'] as int,
     );
   }
 

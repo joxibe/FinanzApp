@@ -11,6 +11,10 @@ import 'package:finanz_app/core/data/repositories/ant_transaction_repository.dar
 import 'package:finanz_app/core/data/repositories/fixed_category_repository.dart';
 import 'package:finanz_app/core/data/repositories/ant_category_repository.dart';
 
+// Enumeraciones para el filtrado
+enum SortType { amount, date }
+enum SortOrder { ascending, descending }
+
 /// Estado global de la aplicación
 class AppState extends ChangeNotifier {
   final FixedTransactionRepository _fixedTransactionRepo = FixedTransactionRepository();
@@ -30,48 +34,165 @@ class AppState extends ChangeNotifier {
   // Lista de categorías hormiga
   List<AntCategory> _antCategories = [];
 
+  // Estados de filtrado
+  SortType _budgetSortType = SortType.date;
+  SortOrder _budgetSortOrder = SortOrder.descending;
+  SortType _balanceSortType = SortType.date;
+  SortOrder _balanceSortOrder = SortOrder.descending;
+
+  // Getters y setters para los estados de filtrado
+  SortType get budgetSortType => _budgetSortType;
+  SortOrder get budgetSortOrder => _budgetSortOrder;
+  SortType get balanceSortType => _balanceSortType;
+  SortOrder get balanceSortOrder => _balanceSortOrder;
+
+  // Control del mes actual que se está visualizando
+  DateTime _currentViewMonth = DateTime.now();
+  DateTime get currentViewMonth => _currentViewMonth;
+
   // Getters para las transacciones y categorías
   List<FixedTransaction> get fixedTransactions => List.unmodifiable(_fixedTransactions);
   List<AntTransaction> get antTransactions => List.unmodifiable(_antTransactions);
   List<FixedCategory> get fixedCategories => List.unmodifiable(_fixedCategories);
   List<AntCategory> get antCategories => List.unmodifiable(_antCategories);
 
-  // Calcular el saldo inicial (ingresos fijos - gastos fijos)
+  // Transacciones fijas filtradas para el mes en visualización
+  List<FixedTransaction> get currentMonthFixedTransactions {
+    return _fixedTransactions.where((transaction) => 
+      transaction.date.year == _currentViewMonth.year && 
+      transaction.date.month == _currentViewMonth.month
+    ).toList();
+  }
+
+  // Transacciones hormiga filtradas para el mes en visualización
+  List<AntTransaction> get currentMonthAntTransactions {
+    return _antTransactions.where((transaction) => 
+      transaction.date.year == _currentViewMonth.year && 
+      transaction.date.month == _currentViewMonth.month
+    ).toList();
+  }
+
+  // Calcular el saldo inicial (ingresos fijos - gastos fijos) para el mes actual
   double get initialBalance {
-    final totalFixedIncome = _fixedTransactions
+    final transactions = currentMonthFixedTransactions;
+    
+    final totalFixedIncome = transactions
         .where((t) => t.type == FixedTransactionType.income)
         .fold(0.0, (sum, t) => sum + t.amount);
 
-    final totalFixedExpenses = _fixedTransactions
+    final totalFixedExpenses = transactions
         .where((t) => t.type == FixedTransactionType.expense)
         .fold(0.0, (sum, t) => sum + t.amount);
 
     return totalFixedIncome - totalFixedExpenses;
   }
 
-  // Calcular el balance actual (saldo inicial - gastos hormiga + ingresos hormiga)
+  // Calcular el balance actual (saldo inicial - gastos hormiga + ingresos hormiga) para el mes actual
   double get currentBalance {
-    final totalAntExpenses = _antTransactions
+    final antTransactions = currentMonthAntTransactions;
+    
+    final totalAntExpenses = antTransactions
         .where((t) => t.type == AntTransactionType.expense)
         .fold(0.0, (sum, t) => sum + t.amount);
 
-    final totalAntIncome = _antTransactions
+    final totalAntIncome = antTransactions
         .where((t) => t.type == AntTransactionType.income)
         .fold(0.0, (sum, t) => sum + t.amount);
 
     return initialBalance - totalAntExpenses + totalAntIncome;
   }
 
+  // Cambiar el mes que se está visualizando
+  Future<void> changeViewMonth(DateTime newMonth) async {
+    try {
+      // Validar que la fecha no sea anterior a 2017
+      if (newMonth.year < 2017) {
+        throw Exception('No se pueden ver datos anteriores a 2017');
+      }
+      
+      // Validar que la fecha no sea más de 2 años en el futuro
+      final now = DateTime.now();
+      final maxFutureDate = DateTime(now.year + 2, 12, 31);
+      if (newMonth.isAfter(maxFutureDate)) {
+        throw Exception('No se pueden ver datos más allá de ${maxFutureDate.year}');
+      }
+
+      _currentViewMonth = DateTime(newMonth.year, newMonth.month, 1);
+      await _ensureMonthHasFixedTransactions(_currentViewMonth);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error al cambiar el mes: $e');
+      rethrow;
+    }
+  }
+
   // Cargar datos iniciales
   Future<void> loadInitialData() async {
-    await checkAndGenerateFixedTransactionsForNewMonth();
     await Future.wait([
       _loadFixedTransactions(),
       _loadAntTransactions(),
       _loadFixedCategories(),
       _loadAntCategories(),
+      _loadSortPreferences(),
     ]);
+    
+    await _ensureMonthHasFixedTransactions(_currentViewMonth);
     notifyListeners();
+  }
+
+  // Asegura que el mes especificado tenga transacciones fijas
+  Future<void> _ensureMonthHasFixedTransactions(DateTime month) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final monthKey = '${month.year}-${month.month}';
+      final processedMonths = prefs.getStringList('processed_fixed_months') ?? [];
+      
+      // Si el mes ya fue procesado, no hacer nada
+      if (processedMonths.contains(monthKey)) {
+        return;
+      }
+      
+      // Buscar transacciones del mes anterior para copiarlas
+      final previousMonth = DateTime(month.year, month.month - 1);
+      
+      // Obtener transacciones del mes anterior
+      final previousMonthTransactions = await _fixedTransactionRepo.getTransactionsByDateRange(
+        DateTime(previousMonth.year, previousMonth.month, 1),
+        DateTime(previousMonth.year, previousMonth.month + 1, 0),
+      );
+      
+      // Verificar si ya existen transacciones para este mes
+      final currentMonthTransactions = _fixedTransactions.where((tx) => 
+        tx.date.year == month.year && 
+        tx.date.month == month.month
+      ).toList();
+      
+      // Si no hay transacciones para este mes y hay transacciones del mes anterior
+      if (currentMonthTransactions.isEmpty && previousMonthTransactions.isNotEmpty) {
+        // Copiar cada transacción del mes anterior al mes actual
+        for (final tx in previousMonthTransactions) {
+          final newTx = tx.copyWith(
+            id: null,
+            date: DateTime(month.year, month.month, tx.dayOfMonth),
+          );
+          await _fixedTransactionRepo.addTransaction(newTx);
+        }
+        
+        // Recargar transacciones
+        await _loadFixedTransactions();
+      }
+      
+      // Marcar este mes como procesado
+      if (processedMonths.length > 100) {
+        // Mantener solo los últimos 100 meses procesados para evitar crecimiento indefinido
+        processedMonths.removeRange(0, processedMonths.length - 100);
+      }
+      processedMonths.add(monthKey);
+      await prefs.setStringList('processed_fixed_months', processedMonths);
+    } catch (e) {
+      debugPrint('Error al procesar transacciones fijas del mes: $e');
+      rethrow;
+    }
   }
 
   Future<void> _loadFixedTransactions() async {
@@ -88,6 +209,40 @@ class AppState extends ChangeNotifier {
 
   Future<void> _loadAntCategories() async {
     _antCategories = await _antCategoryRepo.getAllCategories();
+  }
+
+  // Cargar preferencias de ordenamiento
+  Future<void> _loadSortPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    _budgetSortType = SortType.values[prefs.getInt('budgetSortType') ?? SortType.date.index];
+    _budgetSortOrder = SortOrder.values[prefs.getInt('budgetSortOrder') ?? SortOrder.descending.index];
+    _balanceSortType = SortType.values[prefs.getInt('balanceSortType') ?? SortType.date.index];
+    _balanceSortOrder = SortOrder.values[prefs.getInt('balanceSortOrder') ?? SortOrder.descending.index];
+  }
+
+  // Actualizar preferencias de ordenamiento para el presupuesto
+  Future<void> updateBudgetSort(SortType type, SortOrder order) async {
+    _budgetSortType = type;
+    _budgetSortOrder = order;
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('budgetSortType', type.index);
+    await prefs.setInt('budgetSortOrder', order.index);
+    
+    notifyListeners();
+  }
+
+  // Actualizar preferencias de ordenamiento para el balance
+  Future<void> updateBalanceSort(SortType type, SortOrder order) async {
+    _balanceSortType = type;
+    _balanceSortOrder = order;
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('balanceSortType', type.index);
+    await prefs.setInt('balanceSortOrder', order.index);
+    
+    notifyListeners();
   }
 
   // Agregar una transacción fija
@@ -186,9 +341,22 @@ class AppState extends ChangeNotifier {
 
   ThemeData get currentTheme => _isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme;
 
-  AppState() {
+  AppState({
+    List<AntTransaction>? antTransactions,
+    List<FixedTransaction>? fixedTransactions,
+    List<AntCategory>? antCategories,
+    List<FixedCategory>? fixedCategories,
+  }) {
+    if (antTransactions != null) _antTransactions = antTransactions;
+    if (fixedTransactions != null) _fixedTransactions = fixedTransactions;
+    if (antCategories != null) _antCategories = antCategories;
+    if (fixedCategories != null) _fixedCategories = fixedCategories;
+    
     _loadThemePreference();
-    loadInitialData();
+    if (antTransactions == null && fixedTransactions == null && 
+        antCategories == null && fixedCategories == null) {
+      loadInitialData();
+    }
   }
 
   Future<void> _loadThemePreference() async {
@@ -204,197 +372,43 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Cargar datos de prueba
-  Future<void> loadMockData() async {
-    // Primero eliminamos todos los datos existentes
-    for (var transaction in _fixedTransactions) {
-      await deleteFixedTransaction(transaction);
-    }
-    for (var transaction in _antTransactions) {
-      await deleteAntTransaction(transaction);
-    }
-    for (var category in _fixedCategories) {
-      await deleteFixedCategory(category);
-    }
-    for (var category in _antCategories) {
-      await deleteAntCategory(category);
-    }
-
-    // Agregamos algunas categorías fijas de ejemplo
-    final salario = FixedCategory(
-      id: 'salary',
-      name: 'Salario',
-      legend: 'Ingreso mensual por trabajo',
-      icon: Icons.work,
-      color: Colors.green,
-      type: FixedTransactionType.income,
-    );
-
-    final vivienda = FixedCategory(
-      id: 'housing',
-      name: 'Vivienda',
-      legend: 'Gastos de vivienda',
-      icon: Icons.home,
-      color: Colors.blue,
-      type: FixedTransactionType.expense,
-    );
-
-    final servicios = FixedCategory(
-      id: 'services',
-      name: 'Servicios',
-      legend: 'Servicios básicos',
-      icon: Icons.power,
-      color: Colors.orange,
-      type: FixedTransactionType.expense,
-    );
-
-    await addFixedCategory(salario);
-    await addFixedCategory(vivienda);
-    await addFixedCategory(servicios);
-
-    // Agregamos algunas transacciones fijas de ejemplo
-    final transaccionSalario = FixedTransaction(
-      id: 'salario_1',
-      description: 'Salario mensual',
-      amount: 3000.0,
-      date: DateTime.now(),
-      category: salario,
-      type: FixedTransactionType.income,
-      dayOfMonth: 1,
-    );
-
-    final transaccionAlquiler = FixedTransaction(
-      id: 'alquiler_1',
-      description: 'Pago de alquiler',
-      amount: 800.0,
-      date: DateTime.now(),
-      category: vivienda,
-      type: FixedTransactionType.expense,
-      dayOfMonth: 5,
-    );
-
-    final transaccionServicios = FixedTransaction(
-      id: 'servicios_1',
-      description: 'Pago de servicios',
-      amount: 200.0,
-      date: DateTime.now(),
-      category: servicios,
-      type: FixedTransactionType.expense,
-      dayOfMonth: 10,
-    );
-
-    await addFixedTransaction(transaccionSalario);
-    await addFixedTransaction(transaccionAlquiler);
-    await addFixedTransaction(transaccionServicios);
-
-    // Agregamos algunas categorías hormiga de ejemplo
-    final comida = AntCategory(
-      id: 'food',
-      name: 'Alimentación y bebidas',
-      legend: 'Comidas y bebidas',
-      icon: Icons.restaurant,
-      color: Colors.orange,
-      type: AntTransactionType.expense,
-    );
-
-    final transporte = AntCategory(
-      id: 'transport',
-      name: 'Transporte y movilidad',
-      legend: 'Transporte y viajes',
-      icon: Icons.directions_car,
-      color: Colors.blue,
-      type: AntTransactionType.expense,
-    );
-
-    final entretenimiento = AntCategory(
-      id: 'entertainment',
-      name: 'Entretenimiento y ocio',
-      legend: 'Diversión y recreación',
-      icon: Icons.movie,
-      color: Colors.purple,
-      type: AntTransactionType.expense,
-    );
-
-    await addAntCategory(comida);
-    await addAntCategory(transporte);
-    await addAntCategory(entretenimiento);
-
-    // Agregamos algunas transacciones hormiga de ejemplo
-    final transaccionComida = AntTransaction(
-      id: 'comida_1',
-      description: 'Supermercado',
-      amount: 50.0,
-      date: DateTime.now(),
-      category: comida,
-      type: AntTransactionType.expense,
-    );
-
-    final transaccionTransporte = AntTransaction(
-      id: 'transporte_1',
-      description: 'Gasolina',
-      amount: 30.0,
-      date: DateTime.now(),
-      category: transporte,
-      type: AntTransactionType.expense,
-    );
-
-    final transaccionEntretenimiento = AntTransaction(
-      id: 'entretenimiento_1',
-      description: 'Cine',
-      amount: 20.0,
-      date: DateTime.now(),
-      category: entretenimiento,
-      type: AntTransactionType.expense,
-    );
-
-    await addAntTransaction(transaccionComida);
-    await addAntTransaction(transaccionTransporte);
-    await addAntTransaction(transaccionEntretenimiento);
-
-    // Recargamos todos los datos
-    await loadInitialData();
-  }
-
-  Future<void> checkAndGenerateFixedTransactionsForNewMonth() async {
-    final prefs = await SharedPreferences.getInstance();
-    final now = DateTime.now();
-    final currentMonthKey = '${now.year}-${now.month}';
-
-    final lastProcessedMonth = prefs.getString('last_fixed_month');
-
-    // Recarga las transacciones fijas antes de procesar
-    await _loadFixedTransactions();
-
-    if (lastProcessedMonth != currentMonthKey) {
-      // Cargar transacciones fijas del mes anterior
-      final previousMonth = DateTime(now.year, now.month - 1);
-      final previousMonthTransactions = await _fixedTransactionRepo.getTransactionsByDateRange(
-        DateTime(previousMonth.year, previousMonth.month, 1),
-        DateTime(previousMonth.year, previousMonth.month + 1, 0),
-      );
-
-      // Por cada transacción fija del mes anterior, crear una nueva para el mes actual si no existe
-      for (final tx in previousMonthTransactions) {
-        final exists = _fixedTransactions.any((t) =>
-          t.category.id == tx.category.id &&
-          t.type == tx.type &&
-          t.date.year == now.year &&
-          t.date.month == now.month
-        );
-        if (!exists) {
-          final newTx = tx.copyWith(
-            id: null, // Genera un nuevo id
-            date: DateTime(now.year, now.month, tx.dayOfMonth),
-          );
-          await _fixedTransactionRepo.addTransaction(newTx);
-        }
+  // Actualizar el estado de la app con datos importados
+  Future<void> updateFromImport(AppState importedState) async {
+    try {
+      // Validar datos importados
+      if (importedState.fixedCategories.isEmpty || importedState.antCategories.isEmpty) {
+        throw Exception('Los datos importados deben contener al menos una categoría de cada tipo');
       }
 
-      // Actualiza el mes procesado
-      await prefs.setString('last_fixed_month', currentMonthKey);
-      // Recarga las transacciones
-      await _loadFixedTransactions();
-      notifyListeners();
+      // Limpiar datos actuales
+      await Future.wait([
+        _fixedTransactionRepo.deleteAllTransactions(),
+        _antTransactionRepo.deleteAllTransactions(),
+        _fixedCategoryRepo.deleteAllCategories(),
+        _antCategoryRepo.deleteAllCategories(),
+      ]);
+
+      // Importar nuevas categorías
+      for (final category in importedState.fixedCategories) {
+        await _fixedCategoryRepo.addCategory(category);
+      }
+      for (final category in importedState.antCategories) {
+        await _antCategoryRepo.addCategory(category);
+      }
+
+      // Importar nuevas transacciones
+      for (final transaction in importedState.fixedTransactions) {
+        await _fixedTransactionRepo.addTransaction(transaction);
+      }
+      for (final transaction in importedState.antTransactions) {
+        await _antTransactionRepo.addTransaction(transaction);
+      }
+
+      // Recargar todos los datos
+      await loadInitialData();
+    } catch (e) {
+      debugPrint('Error al importar datos: $e');
+      rethrow;
     }
   }
-} 
+}

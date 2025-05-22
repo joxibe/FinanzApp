@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:finanz_app/features/budget/domain/models/fixed_category.dart';
 import 'package:finanz_app/core/data/database/database_service.dart';
+import 'package:finanz_app/core/utils/icon_helper.dart';
 
 class FixedCategoryRepository {
   final DatabaseService _dbService = DatabaseService();
@@ -13,7 +14,7 @@ class FixedCategoryRepository {
         id: map['id'] as String,
         name: map['name'] as String,
         legend: map['legend'] as String? ?? 'Sin descripción',
-        icon: IconData(map['icon'] as int, fontFamily: 'MaterialIcons'),
+        iconName: map['icon'] as String,
         color: Color(map['color'] as int),
         type: map['type'] == 'expense' 
           ? FixedTransactionType.expense 
@@ -27,7 +28,7 @@ class FixedCategoryRepository {
       'id': category.id,
       'name': category.name,
       'legend': category.legend,
-      'icon': category.icon.codePoint,
+      'icon': category.iconName,
       'color': category.color.value,
       'type': category.type.toString(),
     });
@@ -39,7 +40,7 @@ class FixedCategoryRepository {
       {
         'name': category.name,
         'legend': category.legend,
-        'icon': category.icon.codePoint,
+        'icon': category.iconName,
         'color': category.color.value,
         'type': category.type.toString(),
       },
@@ -54,5 +55,9 @@ class FixedCategoryRepository {
       where: 'id = ?',
       whereArgs: [category.id],
     );
+  }
+
+  Future<void> deleteAllCategories() async {
+    await _dbService.delete('fixed_categories');
   }
 } 

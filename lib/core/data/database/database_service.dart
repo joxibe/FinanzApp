@@ -26,7 +26,7 @@ class DatabaseService {
 
   Future<Database> _initDatabase() async {
     final documentsDirectory = await getApplicationDocumentsDirectory();
-    final path = join(documentsDirectory.path, 'finanz_app.db');
+    final path = join(documentsDirectory.path, 'finanz_app_v2.db');
 
     return await openDatabase(
       path,
@@ -43,7 +43,7 @@ class DatabaseService {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         legend TEXT NOT NULL,
-        icon INTEGER NOT NULL,
+        icon TEXT NOT NULL,
         color INTEGER NOT NULL,
         type TEXT NOT NULL
       )
@@ -55,7 +55,7 @@ class DatabaseService {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         legend TEXT NOT NULL,
-        icon INTEGER NOT NULL,
+        icon TEXT NOT NULL,
         color INTEGER NOT NULL,
         type TEXT NOT NULL
       )
@@ -111,7 +111,7 @@ class DatabaseService {
         'id': category.id,
         'name': category.name,
         'legend': category.legend,
-        'icon': category.icon.codePoint,
+        'icon': category.iconName,
         'color': category.color.value,
         'type': category.type.toString().split('.').last,
       });
@@ -121,7 +121,7 @@ class DatabaseService {
         'id': category.id,
         'name': category.name,
         'legend': category.legend,
-        'icon': category.icon.codePoint,
+        'icon': category.iconName,
         'color': category.color.value,
         'type': category.type.toString().split('.').last,
       });
@@ -132,7 +132,7 @@ class DatabaseService {
         'id': category.id,
         'name': category.name,
         'legend': category.legend,
-        'icon': category.icon.codePoint,
+        'icon': category.iconName,
         'color': category.color.value,
         'type': category.type.toString().split('.').last,
       });
@@ -142,7 +142,7 @@ class DatabaseService {
         'id': category.id,
         'name': category.name,
         'legend': category.legend,
-        'icon': category.icon.codePoint,
+        'icon': category.iconName,
         'color': category.color.value,
         'type': category.type.toString().split('.').last,
       });

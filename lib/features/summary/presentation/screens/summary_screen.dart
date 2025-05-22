@@ -3,7 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:finanz_app/core/domain/models/app_state.dart';
 import 'package:finanz_app/core/presentation/widgets/shared_widgets.dart';
+import 'package:finanz_app/core/presentation/widgets/export_dialog.dart';
 import 'package:finanz_app/core/utils/number_formatter.dart';
+import 'package:finanz_app/core/utils/export_service.dart';
 import 'package:finanz_app/features/balance/domain/models/ant_transaction.dart';
 import 'package:finanz_app/features/balance/domain/models/ant_category.dart';
 import 'package:finanz_app/features/budget/domain/models/fixed_transaction.dart';
@@ -102,41 +104,46 @@ class _SummaryScreenState extends State<SummaryScreen> {
     List<AntTransaction> antTransactions,
     List<FixedTransaction> fixedTransactions,
   ) {
-    final monthAntTransactions = antTransactions.where((t) =>
-      t.date.year == month.year && t.date.month == month.month
-    ).toList();
+    // Filtrar una sola vez con un solo recorrido para mejor rendimiento
+    final monthAntTransactions = <AntTransaction>[];
+    double totalAntIncome = 0.0;
+    double totalAntExpenses = 0.0;
+    
+    for (final transaction in antTransactions) {
+      if (transaction.date.year == month.year && transaction.date.month == month.month) {
+        monthAntTransactions.add(transaction);
+        if (transaction.type == AntTransactionType.income) {
+          totalAntIncome += transaction.amount;
+        } else {
+          totalAntExpenses += transaction.amount;
+        }
+      }
+    }
 
-    final monthFixedTransactions = fixedTransactions.where((t) =>
-      t.date.year == month.year && t.date.month == month.month
-    ).toList();
+    // Hacer lo mismo con las transacciones fijas
+    final monthFixedTransactions = <FixedTransaction>[];
+    final fixedIncomeTransactions = <FixedTransaction>[];
+    final fixedExpenseTransactions = <FixedTransaction>[];
+    double totalFixedIncome = 0.0;
+    double totalFixedExpenses = 0.0;
+    
+    for (final transaction in fixedTransactions) {
+      if (transaction.date.year == month.year && transaction.date.month == month.month) {
+        monthFixedTransactions.add(transaction);
+        if (transaction.type == FixedTransactionType.income) {
+          fixedIncomeTransactions.add(transaction);
+          totalFixedIncome += transaction.amount;
+        } else {
+          fixedExpenseTransactions.add(transaction);
+          totalFixedExpenses += transaction.amount;
+        }
+      }
+    }
 
-    // Calcular totales de transacciones hormiga
-    final totalAntIncome = monthAntTransactions
-        .where((t) => t.type == AntTransactionType.income)
-        .fold(0.0, (sum, t) => sum + t.amount);
-
-    final totalAntExpenses = monthAntTransactions
-        .where((t) => t.type == AntTransactionType.expense)
-        .fold(0.0, (sum, t) => sum + t.amount);
-
-    // Calcular totales de transacciones fijas
-    final totalFixedIncome = monthFixedTransactions
-        .where((t) => t.type == FixedTransactionType.income)
-        .fold(0.0, (sum, t) => sum + t.amount);
-
-    final totalFixedExpenses = monthFixedTransactions
-        .where((t) => t.type == FixedTransactionType.expense)
-        .fold(0.0, (sum, t) => sum + t.amount);
-
-    // Separar transacciones fijas por tipo
-    final fixedIncomeTransactions = monthFixedTransactions
-        .where((t) => t.type == FixedTransactionType.income)
-        .toList();
-
-    final fixedExpenseTransactions = monthFixedTransactions
-        .where((t) => t.type == FixedTransactionType.expense)
-        .toList();
-
+    // Calcular totales finales
+    final totalIncome = totalAntIncome + totalFixedIncome;
+    final totalExpenses = totalAntExpenses + totalFixedExpenses;
+    
     return {
       'antTransactions': monthAntTransactions,
       'fixedTransactions': monthFixedTransactions,
@@ -146,9 +153,9 @@ class _SummaryScreenState extends State<SummaryScreen> {
       'totalAntExpenses': totalAntExpenses,
       'totalFixedIncome': totalFixedIncome,
       'totalFixedExpenses': totalFixedExpenses,
-      'totalIncome': totalAntIncome + totalFixedIncome,
-      'totalExpenses': totalAntExpenses + totalFixedExpenses,
-      'balance': (totalAntIncome + totalFixedIncome) - (totalAntExpenses + totalFixedExpenses),
+      'totalIncome': totalIncome,
+      'totalExpenses': totalExpenses,
+      'balance': totalIncome - totalExpenses,
     };
   }
 
@@ -247,6 +254,28 @@ class _SummaryScreenState extends State<SummaryScreen> {
                               ],
                             ),
                           ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.download,
+                              color: accentColor,
+                              size: 18,
+                            ),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => ExportDialog(
+                                  year: month.year,
+                                  month: month.month,
+                                ),
+                              );
+                            },
+                            tooltip: 'Exportar este mes',
+                            visualDensity: VisualDensity.compact,
+                            constraints: const BoxConstraints(),
+                            splashRadius: 20,
+                            padding: const EdgeInsets.all(8),
+                          ),
+                          const SizedBox(width: 4),
                           Icon(
                             _expandedMonths[month] == true
                                 ? Icons.keyboard_arrow_up
@@ -1004,34 +1033,26 @@ class _SummaryScreenState extends State<SummaryScreen> {
   }
 
   Widget _buildExportButton(BuildContext context) {
-    return Column(
-      children: [
-        Center(
-          child: FilledButton.icon(
-            onPressed: () {
-              // TODO: Implementar exportación a Excel
-            },
-            icon: const Icon(Icons.download),
-            label: const Text('Exportar a Excel'),
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 16,
-              ),
+    return Center(
+      child: FilledButton.icon(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => ExportDialog(
+              year: _selectedYear ?? DateTime.now().year,
+              month: null,
             ),
+          );
+        },
+        icon: const Icon(Icons.download),
+        label: const Text('Exportar Datos'),
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 16,
           ),
         ),
-        const SizedBox(height: 8),
-        Center(
-          child: Text(
-            'Se requiere ver un video publicitario para exportar',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontStyle: FontStyle.italic,
-                ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

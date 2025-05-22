@@ -52,15 +52,10 @@ class _BalanceScreenState extends State<BalanceScreen> {
                 transaction: transaction,
                 onSave: (updatedTransaction) {
                   try {
-                    // Actualizar el estado
                     context.read<AppState>().updateAntTransaction(updatedTransaction);
                     
-                    // Solo navegar si el widget sigue montado
                     if (context.mounted) {
-                      // Navegar de vuelta
                       Navigator.of(context).pop();
-                      
-                      // Mostrar mensaje de éxito
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Transacción actualizada con éxito'),
@@ -114,6 +109,146 @@ class _BalanceScreenState extends State<BalanceScreen> {
     }
   }
 
+  List<AntTransaction> _sortTransactions(List<AntTransaction> transactions, AppState appState) {
+    final sortedList = List<AntTransaction>.from(transactions);
+    
+    sortedList.sort((a, b) {
+      int comparison;
+      
+      switch (appState.balanceSortType) {
+        case SortType.amount:
+          comparison = a.amount.compareTo(b.amount);
+          break;
+        case SortType.date:
+          comparison = a.date.compareTo(b.date);
+          break;
+      }
+      
+      return appState.balanceSortOrder == SortOrder.ascending ? comparison : -comparison;
+    });
+    
+    return sortedList;
+  }
+
+  Widget _buildFilterButton(AppState appState) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.filter_list),
+      tooltip: 'Filtros',
+      onSelected: (value) async {
+        final type = value.startsWith('amount') ? SortType.amount : SortType.date;
+        final order = value.endsWith('asc') ? SortOrder.ascending : SortOrder.descending;
+        await appState.updateBalanceSort(type, order);
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'amount_asc',
+          child: Row(
+            children: [
+              const Icon(Icons.trending_up),
+              const SizedBox(width: 8),
+              const Text('Monto: Menor a Mayor'),
+              if (appState.balanceSortType == SortType.amount && appState.balanceSortOrder == SortOrder.ascending)
+                const Spacer(),
+              if (appState.balanceSortType == SortType.amount && appState.balanceSortOrder == SortOrder.ascending)
+                const Icon(Icons.check, color: Colors.green),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'amount_desc',
+          child: Row(
+            children: [
+              const Icon(Icons.trending_down),
+              const SizedBox(width: 8),
+              const Text('Monto: Mayor a Menor'),
+              if (appState.balanceSortType == SortType.amount && appState.balanceSortOrder == SortOrder.descending)
+                const Spacer(),
+              if (appState.balanceSortType == SortType.amount && appState.balanceSortOrder == SortOrder.descending)
+                const Icon(Icons.check, color: Colors.green),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'date_asc',
+          child: Row(
+            children: [
+              const Icon(Icons.calendar_today),
+              const SizedBox(width: 8),
+              const Text('Fecha: Más Antigua'),
+              if (appState.balanceSortType == SortType.date && appState.balanceSortOrder == SortOrder.ascending)
+                const Spacer(),
+              if (appState.balanceSortType == SortType.date && appState.balanceSortOrder == SortOrder.ascending)
+                const Icon(Icons.check, color: Colors.green),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'date_desc',
+          child: Row(
+            children: [
+              const Icon(Icons.calendar_today),
+              const SizedBox(width: 8),
+              const Text('Fecha: Más Reciente'),
+              if (appState.balanceSortType == SortType.date && appState.balanceSortOrder == SortOrder.descending)
+                const Spacer(),
+              if (appState.balanceSortType == SortType.date && appState.balanceSortOrder == SortOrder.descending)
+                const Icon(Icons.check, color: Colors.green),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title, AppState appState) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        _buildFilterButton(appState),
+      ],
+    );
+  }
+
+  Widget _buildTransactionsList(List<AntTransaction> transactions, AppState appState) {
+    if (transactions.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Center(
+            child: Text(
+              'No hay transacciones registradas',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final sortedTransactions = _sortTransactions(transactions, appState);
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: sortedTransactions.length,
+      itemBuilder: (context, index) {
+        final transaction = sortedTransactions[index];
+        return TransactionItem(
+          transaction: transaction,
+          onEdit: () => _showEditTransactionForm(context, transaction),
+          onDelete: () => _showDeleteConfirmation(context, transaction),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,17 +257,27 @@ class _BalanceScreenState extends State<BalanceScreen> {
           final now = DateTime.now();
           final currentMonth = DateTime(now.year, now.month);
           
-          // Filtrar transacciones fijas y hormiga del mes actual
+          // Filtrar transacciones del mes actual
           final fixedTransactions = appState.fixedTransactions.where((t) =>
             t.date.year == currentMonth.year && 
             t.date.month == currentMonth.month
           ).toList();
+          
           final antTransactions = appState.antTransactions.where((t) =>
             t.date.year == currentMonth.year && 
             t.date.month == currentMonth.month
           ).toList();
           
-          // Calcular saldo inicial: ingresos fijos - gastos fijos del mes actual
+          // Separar transacciones por tipo
+          final incomeTransactions = antTransactions
+              .where((t) => t.type == AntTransactionType.income)
+              .toList();
+          
+          final expenseTransactions = antTransactions
+              .where((t) => t.type == AntTransactionType.expense)
+              .toList();
+          
+          // Calcular balances
           final initialBalance = fixedTransactions
               .where((t) => t.type == FixedTransactionType.income)
               .fold(0.0, (sum, t) => sum + t.amount)
@@ -140,12 +285,9 @@ class _BalanceScreenState extends State<BalanceScreen> {
               .where((t) => t.type == FixedTransactionType.expense)
               .fold(0.0, (sum, t) => sum + t.amount);
           
-          // Calcular saldo actual: saldo inicial + ingresos hormiga - gastos hormiga
-          final totalAntIncome = antTransactions
-              .where((t) => t.type == AntTransactionType.income)
+          final totalAntIncome = incomeTransactions
               .fold(0.0, (sum, t) => sum + t.amount);
-          final totalAntExpenses = antTransactions
-              .where((t) => t.type == AntTransactionType.expense)
+          final totalAntExpenses = expenseTransactions
               .fold(0.0, (sum, t) => sum + t.amount);
           final currentBalance = initialBalance + totalAntIncome - totalAntExpenses;
 
@@ -161,6 +303,7 @@ class _BalanceScreenState extends State<BalanceScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Resumen de balance
                         BalanceSummaryCard(
                           currentBalance: currentBalance,
                           initialBalance: initialBalance,
@@ -173,6 +316,8 @@ class _BalanceScreenState extends State<BalanceScreen> {
                             : const Color(0xFFED8936),
                         ),
                         const SizedBox(height: 12),
+                        
+                        // Botones de tipo de transacción
                         Row(
                           children: [
                             Expanded(
@@ -238,6 +383,8 @@ class _BalanceScreenState extends State<BalanceScreen> {
                             ),
                           ],
                         ),
+                        
+                        // Formulario de nueva transacción
                         if (_showForm) ...[
                           const SizedBox(height: 16),
                           Card(
@@ -264,79 +411,19 @@ class _BalanceScreenState extends State<BalanceScreen> {
                           ),
                         ],
                         const SizedBox(height: 20),
-                        Text(
-                          'Ingresos Hormiga',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
+                        
+                        // Sección de Ingresos Hormiga
+                        _buildSectionHeader('Ingresos Hormiga', appState),
                         const SizedBox(height: 8),
-                        if (antTransactions.where((t) => t.type == AntTransactionType.income).isEmpty)
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Center(
-                                child: Text(
-                                  'No hay ingresos hormiga registrados',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                        else
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: antTransactions.where((t) => t.type == AntTransactionType.income).length,
-                            itemBuilder: (context, index) {
-                              final transaction = antTransactions
-                                  .where((t) => t.type == AntTransactionType.income)
-                                  .toList()[index];
-                              return TransactionItem(
-                                transaction: transaction,
-                                onEdit: () => _showEditTransactionForm(context, transaction),
-                                onDelete: () => _showDeleteConfirmation(context, transaction),
-                              );
-                            },
-                          ),
+                        _buildTransactionsList(incomeTransactions, appState),
+                        
                         const SizedBox(height: 16),
-                        Text(
-                          'Gastos Hormiga',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
+                        
+                        // Sección de Gastos Hormiga
+                        _buildSectionHeader('Gastos Hormiga', appState),
                         const SizedBox(height: 8),
-                        if (antTransactions.where((t) => t.type == AntTransactionType.expense).isEmpty)
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Center(
-                                child: Text(
-                                  'No hay gastos hormiga registrados',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                        else
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: antTransactions.where((t) => t.type == AntTransactionType.expense).length,
-                            itemBuilder: (context, index) {
-                              final transaction = antTransactions
-                                  .where((t) => t.type == AntTransactionType.expense)
-                                  .toList()[index];
-                              return TransactionItem(
-                                transaction: transaction,
-                                onEdit: () => _showEditTransactionForm(context, transaction),
-                                onDelete: () => _showDeleteConfirmation(context, transaction),
-                              );
-                            },
-                          ),
+                        _buildTransactionsList(expenseTransactions, appState),
+                        
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -433,4 +520,4 @@ class _TransactionItem extends StatelessWidget {
       ),
     );
   }
-} 
+}

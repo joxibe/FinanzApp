@@ -1,6 +1,7 @@
 import 'package:finanz_app/core/data/database/database_service.dart';
 import 'package:finanz_app/features/balance/domain/models/ant_category.dart';
 import 'package:flutter/material.dart';
+import 'package:finanz_app/core/utils/icon_helper.dart';
 
 class AntCategoryRepository {
   final DatabaseService _db = DatabaseService();
@@ -13,7 +14,7 @@ class AntCategoryRepository {
         id: maps[i]['id'] as String,
         name: maps[i]['name'] as String,
         legend: maps[i]['legend'] as String? ?? 'Sin descripción',
-        icon: IconData(maps[i]['icon'] as int, fontFamily: 'MaterialIcons'),
+        iconName: maps[i]['icon'] as String,
         color: Color(maps[i]['color'] as int),
         type: AntTransactionType.values.firstWhere(
           (e) => e.toString() == 'AntTransactionType.${maps[i]['type']}',
@@ -28,7 +29,7 @@ class AntCategoryRepository {
       'id': category.id,
       'name': category.name,
       'legend': category.legend,
-      'icon': category.icon.codePoint,
+      'icon': category.iconName,
       'color': category.color.value,
       'type': category.type.toString().split('.').last,
     });
@@ -40,7 +41,7 @@ class AntCategoryRepository {
       {
         'name': category.name,
         'legend': category.legend,
-        'icon': category.icon.codePoint,
+        'icon': category.iconName,
         'color': category.color.value,
         'type': category.type.toString().split('.').last,
       },
@@ -55,5 +56,9 @@ class AntCategoryRepository {
       where: 'id = ?',
       whereArgs: [category.id],
     );
+  }
+
+  Future<void> deleteAllCategories() async {
+    await _db.delete('ant_categories');
   }
 } 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:finanz_app/core/utils/icon_helper.dart';
 
 /// Tipo de transacción hormiga
 enum AntTransactionType {
@@ -11,7 +12,7 @@ class AntCategory {
   final String id;
   final String name;
   final String legend;  // Leyenda descriptiva de la categoría
-  final IconData icon;
+  final String iconName;
   final Color color;
   final AntTransactionType type;
 
@@ -19,10 +20,36 @@ class AntCategory {
     required this.id,
     required this.name,
     required this.legend,
-    required this.icon,
+    required this.iconName,
     required this.color,
     required this.type,
   });
+
+  IconData get icon => IconHelper.getIconByName(iconName);
+
+  /// Convertir a JSON para exportación
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'legend': legend,
+      'iconName': iconName,
+      'color': color.value,
+      'type': type == AntTransactionType.income ? 'income' : 'expense',
+    };
+  }
+
+  /// Crear una categoría desde JSON
+  factory AntCategory.fromJson(Map<String, dynamic> json) {
+    return AntCategory(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      legend: json['legend'] as String? ?? 'Sin descripción',
+      iconName: json['iconName'] as String,
+      color: Color(json['color'] as int),
+      type: json['type'] == 'income' ? AntTransactionType.income : AntTransactionType.expense,
+    );
+  }
 
   /// Lista predefinida de categorías de gastos hormiga
   static const List<AntCategory> expenseCategories = [
@@ -30,7 +57,7 @@ class AntCategory {
       id: 'food_drinks',
       name: 'Alimentación y Bebidas',
       legend: 'Cafés, comidas rápidas, snacks, bebidas, mercado pequeño',
-      icon: Icons.restaurant_menu,
+      iconName: 'restaurant_menu',
       color: Colors.orange,
       type: AntTransactionType.expense,
     ),
@@ -38,7 +65,7 @@ class AntCategory {
       id: 'transport',
       name: 'Transporte',
       legend: 'Pasajes, taxi/plataformas, gasolina moto, parqueaderos, peajes',
-      icon: Icons.directions_car,
+      iconName: 'directions_car',
       color: Colors.blue,
       type: AntTransactionType.expense,
     ),
@@ -46,7 +73,7 @@ class AntCategory {
       id: 'entertainment',
       name: 'Entretenimiento',
       legend: 'Cine, videojuegos, streaming, salidas, eventos',
-      icon: Icons.games,
+      iconName: 'games',
       color: Colors.purple,
       type: AntTransactionType.expense,
     ),
@@ -54,7 +81,7 @@ class AntCategory {
       id: 'personal_shopping',
       name: 'Compras Personales',
       legend: 'Ropa, belleza, tecnología, regalos, artículos para el hogar',
-      icon: Icons.shopping_bag,
+      iconName: 'shopping_bag',
       color: Colors.pink,
       type: AntTransactionType.expense,
     ),
@@ -62,7 +89,7 @@ class AntCategory {
       id: 'basic_services',
       name: 'Servicios Básicos',
       legend: 'Recargas, internet móvil, delivery, lavandería, impresiones',
-      icon: Icons.phone_android,
+      iconName: 'phone_android',
       color: Colors.teal,
       type: AntTransactionType.expense,
     ),
@@ -70,7 +97,7 @@ class AntCategory {
       id: 'other_expense',
       name: 'Otros gastos',
       legend: 'Gastos varios no categorizados',
-      icon: Icons.more_horiz,
+      iconName: 'more_horiz',
       color: Colors.grey,
       type: AntTransactionType.expense,
     ),
@@ -82,7 +109,7 @@ class AntCategory {
       id: 'additional_income',
       name: 'Ingresos Adicionales',
       legend: 'Propinas, bonos pequeños, reembolsos, venta de artículos, trabajos freelance',
-      icon: Icons.attach_money,
+      iconName: 'attach_money',
       color: Colors.green,
       type: AntTransactionType.income,
     ),
@@ -90,7 +117,7 @@ class AntCategory {
       id: 'personal_income',
       name: 'Ingresos Personales',
       legend: 'Mesada, regalos en efectivo, premios, intereses, cashback',
-      icon: Icons.person,
+      iconName: 'person',
       color: Colors.indigo,
       type: AntTransactionType.income,
     ),
@@ -98,7 +125,7 @@ class AntCategory {
       id: 'other_income',
       name: 'Otros ingresos',
       legend: 'Ingresos varios no categorizados',
-      icon: Icons.more_horiz,
+      iconName: 'more_horiz',
       color: Colors.grey,
       type: AntTransactionType.income,
     ),

@@ -1295,7 +1295,8 @@ class _StatisticsCard extends StatelessWidget {
                                         ),
                                         child: const Text(
                                           'Consejo: Esta categoría es fundamental para tu futuro financiero. '
-                                          'Mantén la disciplina de ahorrar regularmente, incluso en meses difíciles.',
+                                          'Mantén la disciplina de ahorrar regularmente, incluso en meses difíciles.'
+                                          'Esta funcionalidad esta en desarrollo, por lo que no es 100% precisa.',
                                           style: TextStyle(fontSize: 13),
                                         ),
                                       ),

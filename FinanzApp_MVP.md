@@ -1,4 +1,3 @@
-
 # FinanzApp - MVP, Roadmap y Plan de Escalabilidad
 
 ## ✨ Visión General
@@ -22,19 +21,11 @@ Una app móvil desarrollada en Flutter (Material 3), pensada para ayudar a los u
 - Notificaciones básicas (ahorro, pagos mensuales).
 - Login (Firebase Auth básico, correo y Google).
 
-### Fase 2: Versión Premium (USD 5 mensual)
+### Fase 2: Versión Pro (USD 5 mensual)
 - Todo lo anterior +
-- Sincronización en la nube (Firebase + login persistente).
-- Exportar informes a Drive / nube.
-- Widget de ingreso rápido en home (texto o voz).
-- Personalización avanzada de categorías.
-- Acceso anticipado a nuevas funciones.
 - Notificaciones inteligentes.
-- Estadísticas avanzadas (día con más gastos, promedios, etc.).
-- Chat básico integrado para soporte o consejos automatizados.
-
-### Fase 3: Versión Pro (USD 10 mensual)
-- Todo lo anterior +
+- Personalización avanzada de categorías.
+- Widget de ingreso rápido en home (texto o voz).
 - Asistente financiero por IA (chatbot).
 - Análisis avanzado de patrones de gasto.
 - Consejos personalizados.
@@ -47,32 +38,33 @@ Una app móvil desarrollada en Flutter (Material 3), pensada para ayudar a los u
 
 ## 📱 Pantallas Principales del MVP
 
-### 1. Inicio (Gasto Hormiga)
+### 1. Balance
 - Tarjeta superior con balance (COP), ingresos y gastos.
 - 2 botones: Registrar ingreso / gasto.
   - Formulario: Descripción, monto, categoría (emoticón), auto-fecha.
 - Historial reciente (expandible, ordenado por fecha).
 
-### 2. Resumen
-- Tarjetas mensuales (expandibles):
-  - Transacciones por mes.
-  - Iconos por categoría.
-  - Solo mes actual es editable.
-  - Edición con restricciones por mes.
-
-### 3. Presupuesto Fijo
+### 2. Budget (Presupuesto)
 - Botones ingreso/gasto (fijo).
   - Mismo formulario que Balance.
   - Categorías mensuales (distintas a gastos hormiga).
+- Control y seguimiento de presupuestos mensuales.
 
-### 4. Informes
+### 3. Reports (Informes)
 - Tarjeta 1: Balance (fijo + hormiga).
 - Tarjeta 2: Estadísticas (expandible)
   - Día con más gastos.
   - Promedio diario.
   - Ahorro potencial (regla 50/30/20).
 - Tarjeta 3: Gastos por categoría (con porcentajes y detalles).
-- Botón de exportar Excel (local o nube si es Premium).
+- Botón de exportar Excel (local o nube si es Pro).
+
+### 4. Summary (Resumen)
+- Tarjetas mensuales (expandibles):
+  - Transacciones por mes.
+  - Iconos por categoría.
+  - Solo mes actual es editable.
+  - Edición con restricciones por mes.
 
 ### 5. Autenticación / Login
 - Pantalla de bienvenida (Splash + animación de carga con `Rive` o `flare_flutter`).
@@ -89,64 +81,94 @@ Una app móvil desarrollada en Flutter (Material 3), pensada para ayudar a los u
 ## 💸 Monetización
 - Publicidad:
   - Banner permanente (AdMob).
-  - Anuncios recompensados para descargar informes.
+  - Anuncios recompensados en la pantalla informes - reports.
 - Suscripciones mensuales:
-  - Premium: USD 5/mes
-  - Pro: USD 10/mes
-- Diferencias entre versiones:
+  - Pro: USD 5/mes
 
-| Funcionalidad                    | Gratuito | Premium | Pro |
-|----------------------------------|----------|---------|-----|
-| Registro ingresos/gastos        | ✅        | ✅       | ✅  |
-| Presupuesto fijo                | ✅        | ✅       | ✅  |
-| Informes básicos                | ✅        | ✅       | ✅  |
-| Exportar Excel (local)          | ✅        | ✅       | ✅  |
-| Exportar a nube (Drive)         | ❌        | ✅       | ✅  |
-| Login + sincronización Firebase| ✅        | ✅       | ✅  |
-| Widget en home (texto/voz)     | ❌        | ✅       | ✅  |
-| Chat financiero IA              | ❌        | ❌       | ✅  |
-| Chat básico automatizado        | ❌        | ✅       | ✅  |
-| Notificaciones IA avanzadas    | ❌        | ❌       | ✅  |
-| Optimización tributaria        | ❌        | ❌       | ✅  |
-| Integración bancaria            | ❌        | ❌       | 🔜  |
+| Funcionalidad                    | Gratuito | Pro |
+|----------------------------------|----------|-----|
+| Registro ingresos/gastos         | ✅       | ✅  |
+| Presupuesto fijo                 | ✅       | ✅  |
+| Informes básicos                 | ✅       | ✅  |
+| Exportar Excel (local)           | ✅       | ✅  |
+| Login + sincronización Firebase  | ✅       | ✅  |
+| Widget en home (texto/voz)       | ❌       | ✅  |
+| Chat financiero IA               | ❌       | ✅  |
+| Notificaciones IA avanzadas      | ❌       | ✅  |
+| Optimización tributaria          | ❌       | ✅  |
+| Integración bancaria             | ❌       | 🔜  |
 
 ---
 
 ## 🧱 Estructura del Proyecto y Buenas Prácticas
 
-### Estructura propuesta Flutter
+### Estructura actual Flutter
 ```
 lib/
 ├── main.dart
 ├── core/
-│   ├── constants/
 │   ├── utils/
-│   ├── themes/
-│   └── services/
+│   │   ├── extensions/
+│   │   └── helpers/
+│   ├── domain/
+│   │   └── models/
+│   ├── data/
+│   │   ├── repositories/
+│   │   └── datasources/
+│   ├── theme/
+│   │   └── app_theme.dart
+│   ├── presentation/
+│   │   ├── widgets/
+│   │   └── screens/
+│   └── services/ [Futuro]
+│       ├── analytics_service.dart
+│       └── notification_service.dart
 ├── features/
-│   ├── home/
-│   ├── resumen/
-│   ├── presupuesto/
-│   ├── informes/
-│   ├── auth/
-│   ├── chat/
-│   └── splash/
-├── data/
-│   ├── models/
-│   ├── datasources/
-│   └── repositories/
-├── presentation/
-│   ├── widgets/
-│   ├── dialogs/
-│   └── animations/
+│   ├── balance/
+│   │   ├── presentation/
+│   │   │   ├── screens/
+│   │   │   └── widgets/
+│   │   └── domain/
+│   ├── budget/
+│   │   ├── presentation/
+│   │   │   ├── screens/
+│   │   │   └── widgets/
+│   │   └── domain/
+│   ├── reports/
+│   │   ├── presentation/
+│   │   │   ├── screens/
+│   │   │   └── widgets/
+│   │   └── domain/
+│   ├── summary/
+│   │   ├── presentation/
+│   │   │   ├── screens/
+│   │   │   └── widgets/
+│   │   └── domain/
+│   └── auth/ [Futuro]
+│       ├── presentation/
+│       └── domain/
+└── config/ [Futuro]
+    ├── router.dart
+    └── providers.dart
+
 assets/
+├── images/
+├── icons/
+└── animations/ [Futuro]
 ```
 
+### Notas sobre la estructura:
+- Las carpetas marcadas con [Futuro] son para implementación posterior
+- La estructura actual sigue un patrón de Clean Architecture modificado
+- Los modelos y repositorios están centralizados en core
+- Cada feature mantiene su propia capa de presentación y dominio
+- Los widgets compartidos están en core/presentation/widgets
+
 ### Buenas prácticas
-- **State management**: Riverpod o Bloc.
+- **State management**: Riverpod.
 - **Animaciones suaves**: Flutter Animate + Material 3 transitions.
-- **Animación de inicio**: Rive o Flare para splash personalizado.
-- **SQL**: Abstracción con `drift` o `sqflite`.
+- **Animación de inicio**: Rive para splash personalizado.
+- **SQL**: Abstracción con `drift`.
 - **Arquitectura limpia** (clean architecture): separación clara entre UI, lógica de negocio y datos.
 - **Notificaciones**: uso de `flutter_local_notifications` + calendario interno para recordatorios.
 - **AdMob**: manejar por entorno (solo producción).
@@ -154,8 +176,7 @@ assets/
 
 ---
 
-## 🔍 IA Financiera (versión futura Pro)
-- Entrenamiento en lenguaje financiero cotidiano.
+## 🔍 IA Financiera (versión Pro)
 - Análisis de patrones de gastos.
 - Reglas básicas (50/30/20, ahorro por porcentaje).
 - Chat tipo WhatsApp que analiza y responde sobre decisiones financieras.
@@ -163,7 +184,7 @@ assets/
   - Revisión semanal.
   - Consejo mensual.
   - Alertas en tiempo real (gasto elevado, oportunidad de ahorro).
-- Puede usar un motor tipo Langchain + Firebase Functions o integración futura con GPT.
+- Integración con GPT para análisis financiero personalizado.
 
 ---
 

@@ -581,7 +581,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
           potentialSaving = total * 0.1;
       }
 
-
       categoryAnalysis.add({
         'category': category,
         'total': total,
@@ -660,18 +659,84 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              analysis['category'] as String,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    analysis['category'] as String,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.info_outline, size: 20),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => _BaseDialog(
+                                        title: analysis['category'] as String,
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Sugerencias de ahorro:',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: analysis['color'] as Color,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            ...(analysis['suggestions'] as List<String>).map((suggestion) => 
+                                              Padding(
+                                                padding: const EdgeInsets.only(bottom: 8),
+                                                child: Text(suggestion),
+                                              ),
+                                            ).toList(),
+                                            const SizedBox(height: 12),
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: (analysis['color'] as Color).withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(Icons.savings, size: 20),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      'Ahorro potencial: ${NumberFormatter.formatCurrency(analysis['potentialSaving'] as double)}',
+                                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  tooltip: 'Ver sugerencias de ahorro',
+                                ),
+                              ],
                             ),
                             Text(
                               '${analysis['count']} transacciones • Promedio: ${NumberFormatter.formatCurrency(analysis['average'] as double)}',
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              'Total: ${NumberFormatter.formatCurrency(analysis['total'] as double)}',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
@@ -683,18 +748,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.purple.withOpacity(0.1),
+                      color: (analysis['color'] as Color).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: (analysis['suggestions'] as List<String>).map((suggestion) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          suggestion,
+                    child: Row(
+                      children: [
+                        Icon(Icons.savings, 
+                          color: analysis['color'] as Color,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Ahorro potencial: ${NumberFormatter.formatCurrency(analysis['potentialSaving'] as double)}',
                           style: const TextStyle(fontSize: 13),
                         ),
-                      )).toList(),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:finanz_app/core/utils/number_formatter.dart';
 import 'package:finanz_app/core/presentation/widgets/shared_widgets.dart';
+import 'package:finanz_app/core/presentation/widgets/custom_date_picker.dart';
 import 'package:finanz_app/core/domain/models/app_state.dart';
 import '../../domain/models/ant_category.dart';
 import '../../domain/models/ant_transaction.dart';
@@ -32,6 +33,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> with SingleTick
   
   AntTransactionType _selectedType = AntTransactionType.expense;
   AntCategory? _selectedCategory;
+  DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
@@ -87,6 +89,30 @@ class _NewTransactionFormState extends State<NewTransactionForm> with SingleTick
     });
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final result = await showDialog<DateTime>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return CustomDatePicker(
+          initialDate: _selectedDate,
+          onDateSelected: (DateTime date) {
+            Navigator.of(context).pop(date);
+          },
+          onCancel: () {
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedDate = result;
+      });
+    }
+  }
+
   Future<void> _handleSubmit() async {
     if (_formKey.currentState?.validate() ?? false) {
       if (_selectedCategory == null) {
@@ -113,6 +139,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> with SingleTick
           amount: amount,
           category: _selectedCategory!,
           type: _selectedType,
+          date: _selectedDate,
         );
 
         widget.onSave(transaction);
@@ -122,6 +149,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> with SingleTick
         _amountController.clear();
         setState(() {
           _selectedCategory = AntCategory.getCategoriesByType(_selectedType).first;
+          _selectedDate = DateTime.now();
         });
 
         widget.onCancel?.call();
@@ -139,6 +167,54 @@ class _NewTransactionFormState extends State<NewTransactionForm> with SingleTick
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Tipo de transacción
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            child: SegmentedButton<AntTransactionType>(
+              segments: const [
+                ButtonSegment<AntTransactionType>(
+                  value: AntTransactionType.expense,
+                  label: Text('Gasto'),
+                  icon: Icon(Icons.remove_circle_outline),
+                ),
+                ButtonSegment<AntTransactionType>(
+                  value: AntTransactionType.income,
+                  label: Text('Ingreso'),
+                  icon: Icon(Icons.add_circle_outline),
+                ),
+              ],
+              selected: {_selectedType},
+              onSelectionChanged: (Set<AntTransactionType> selected) {
+                _handleTypeChange(selected.first);
+              },
+              style: ButtonStyle(
+                shape: MaterialStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                  if (states.contains(MaterialState.selected)) {
+                    return _selectedType == AntTransactionType.expense
+                        ? const Color(0xFFED8936).withOpacity(0.1)
+                        : const Color(0xFF48BB78).withOpacity(0.1);
+                  }
+                  return Colors.transparent;
+                }),
+                foregroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                  if (states.contains(MaterialState.selected)) {
+                    return _selectedType == AntTransactionType.expense
+                        ? const Color(0xFFED8936)
+                        : const Color(0xFF48BB78);
+                  }
+                  return Theme.of(context).colorScheme.onSurfaceVariant;
+                }),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
           // Descripción con animación
           AnimatedFormField(
             controller: _descriptionController,
@@ -171,6 +247,26 @@ class _NewTransactionFormState extends State<NewTransactionForm> with SingleTick
               }
               return null;
             },
+          ),
+          const SizedBox(height: 16),
+
+          // Fecha
+          InkWell(
+            onTap: () => _selectDate(context),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: 'Fecha',
+                prefixIcon: const Icon(Icons.calendar_today),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+              ),
+              child: Text(
+                '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ),
           ),
           const SizedBox(height: 16),
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:finanz_app/core/utils/number_formatter.dart';
 import 'package:finanz_app/core/presentation/widgets/shared_widgets.dart';
+import 'package:finanz_app/core/presentation/widgets/custom_date_picker.dart';
 import '../../domain/models/fixed_category.dart';
 import '../../domain/models/fixed_transaction.dart';
 
@@ -66,33 +67,26 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
   }
 
   Future<void> _selectDay(BuildContext context) async {
-    final DateTime now = DateTime.now();
-    final DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
-    final DateTime lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
-    final DateTime initialDate = DateTime(now.year, now.month, _selectedDay);
-
-    final DateTime? picked = await showDatePicker(
+    final result = await showDialog<DateTime>(
       context: context,
-      initialDate: initialDate,
-      firstDate: firstDayOfMonth,
-      lastDate: lastDayOfMonth,
-      initialDatePickerMode: DatePickerMode.day,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: Theme.of(context).colorScheme.primary,
-              onPrimary: Colors.white,
-            ),
-          ),
-          child: child!,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return CustomDatePicker(
+          initialDate: DateTime(DateTime.now().year, DateTime.now().month, _selectedDay),
+          onDateSelected: (DateTime date) {
+            Navigator.of(context).pop(date);
+          },
+          onCancel: () {
+            Navigator.of(context).pop();
+          },
+          showMonthOnly: true,
         );
       },
     );
 
-    if (picked != null && picked.day != _selectedDay) {
+    if (result != null) {
       setState(() {
-        _selectedDay = picked.day;
+        _selectedDay = result.day;
       });
     }
   }

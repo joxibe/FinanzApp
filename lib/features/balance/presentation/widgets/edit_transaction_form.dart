@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:finanz_app/core/utils/number_formatter.dart';
 import 'package:finanz_app/core/presentation/widgets/shared_widgets.dart';
+import 'package:finanz_app/core/presentation/widgets/custom_date_picker.dart';
 import '../../domain/models/ant_category.dart';
 import '../../domain/models/ant_transaction.dart';
 
@@ -66,32 +67,25 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime now = DateTime.now();
-    final DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
-    final DateTime lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
-
-    final DateTime? picked = await showDatePicker(
+    final result = await showDialog<DateTime>(
       context: context,
-      initialDate: _selectedDate,
-      firstDate: firstDayOfMonth,
-      lastDate: lastDayOfMonth,
-      initialDatePickerMode: DatePickerMode.day,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: Theme.of(context).colorScheme.primary,
-              onPrimary: Colors.white,
-            ),
-          ),
-          child: child!,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return CustomDatePicker(
+          initialDate: _selectedDate,
+          onDateSelected: (DateTime date) {
+            Navigator.of(context).pop(date);
+          },
+          onCancel: () {
+            Navigator.of(context).pop();
+          },
         );
       },
     );
 
-    if (picked != null && picked != _selectedDate) {
+    if (result != null) {
       setState(() {
-        _selectedDate = picked;
+        _selectedDate = result;
       });
     }
   }

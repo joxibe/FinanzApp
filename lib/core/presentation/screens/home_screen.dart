@@ -8,13 +8,18 @@ import 'package:finanz_app/features/budget/presentation/screens/budget_screen.da
 import 'package:finanz_app/features/reports/presentation/screens/reports_screen.dart';
 import 'package:finanz_app/features/summary/presentation/screens/summary_screen.dart';
 import 'package:finanz_app/core/presentation/screens/onboarding_screen.dart';
+import 'package:finanz_app/core/presentation/screens/settings_screen.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
 class AdHelper {
   // IDs de producción de AdMob
-  static String get bannerAdUnitId => 'ca-app-pub-7539659588201107/3038959785';
-  static String get interstitialAdUnitId => 'ca-app-pub-7539659588201107/7483818860';
+  //static String get bannerAdUnitId => 'ca-app-pub-7539659588201107/3038959785';
+  //static String get interstitialAdUnitId => 'ca-app-pub-7539659588201107/7483818860';
+
+  // IDs de prueba
+  static String get bannerAdUnitId => 'ca-app-pub-3940256099942544/6300978111';
+  static String get interstitialAdUnitId => 'ca-app-pub-3940256099942544/1033173712';
 }
 
 class HomeScreen extends StatefulWidget {
@@ -39,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _interstitialAdAttempts = 0;
   int _bannerAdAttempts = 0;
   static const int maxAttempts = 3;
+  bool _isPressed = false;
 
   @override
   void initState() {
@@ -222,46 +228,34 @@ class _HomeScreenState extends State<HomeScreen> {
         return Scaffold(
           appBar: AppBar(
             centerTitle: true,
-            leading: IconButton(
-              icon: const Icon(Icons.help_outline),
-              tooltip: 'Ver tutorial',
-              onPressed: () async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => OnboardingScreen(
-                      onFinish: () => Navigator.of(context).pop(),
-                    ),
+            title: StatefulBuilder(
+              builder: (context, setState) {
+                return GestureDetector(
+                  onTapDown: (_) => setState(() => _isPressed = true),
+                  onTapUp: (_) => setState(() => _isPressed = false),
+                  onTapCancel: () => setState(() => _isPressed = false),
+                  child: TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 100),
+                    curve: Curves.easeInOut,
+                    tween: Tween(begin: 1.0, end: _isPressed ? 0.95 : 1.0),
+                    builder: (context, scale, child) {
+                      return Transform.scale(
+                        scale: scale,
+                        child: Text(
+                          'FinanzApp',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 );
               },
-            ),
-            title: GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('¿Qué es Finanz App?'),
-                    content: const Text(
-                        'FinanzApp te ayuda a llevar un control claro y visual de tus ingresos, gastos fijos y gastos hormiga. Navega entre las pestañas para ver tu balance diario, gestionar tu presupuesto fijo, analizar tus gastos y consultar resúmenes mensuales o anuales.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Entendido'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-              child: const Text(
-                'FinanzApp',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
             ),
             actions: [
-              ThemeSwitch(
-                isDarkMode: appState.isDarkMode,
-                onChanged: (value) => appState.toggleTheme(),
-              ),
               IconButton(
                 icon: const Icon(Icons.info_outline),
                 tooltip: 'Información de la pantalla',
@@ -271,19 +265,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   switch (appState.selectedIndex) {
                     case 0:
                       title = 'Balance';
-                      info = 'Consulta tu balance diario de ingresos y gastos hormiga del mes actual.';
+                      info = 'Registra tus gastos e ingresos hormiga del mes actual. Estos son gastos variables que debes registrar cada mes, ya que no se copian automáticamente al siguiente mes.';
                       break;
                     case 1:
                       title = 'Presupuesto';
-                      info = 'Gestiona tus ingresos y gastos fijos mensuales y visualiza tu saldo disponible.';
+                      info = 'Gestiona tus ingresos y gastos fijos mensuales. Estos se copian automáticamente cada mes para tu comodidad, pero puedes modificarlos en cualquier momento.';
                       break;
                     case 2:
                       title = 'Informes';
-                      info = 'Analiza tus gastos por categoría y accede a estadísticas útiles para mejorar tus finanzas.';
+                      info = 'Analiza tus gastos por categoría y accede a estadísticas útiles. Aquí puedes ver el historial completo de todos tus movimientos y tendencias de gastos.';
                       break;
                     case 3:
                       title = 'Resumen';
-                      info = 'Revisa un resumen mensual o anual de todos tus movimientos y balances.';
+                      info = 'Consulta el resumen mensual o anual de todos tus movimientos. Podrás ver el historial completo de tus gastos fijos y hormiga de meses anteriores.';
                       break;
                   }
                   showDialog(
@@ -301,7 +295,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.settings),
+                tooltip: 'Configuración',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
           body: Column(
@@ -384,5 +389,20 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       label: label,
     );
+  }
+
+  String _getScreenTitle(int index) {
+    switch (index) {
+      case 0:
+        return 'Balance';
+      case 1:
+        return 'Presupuesto';
+      case 2:
+        return 'Informes';
+      case 3:
+        return 'Resumen';
+      default:
+        return 'FinanzApp';
+    }
   }
 }

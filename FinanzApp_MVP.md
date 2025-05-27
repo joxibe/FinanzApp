@@ -92,7 +92,7 @@ Una app móvil desarrollada en Flutter (Material 3), pensada para ayudar a los u
 | Informes básicos                 | ✅       | ✅  |
 | Exportar Excel (local)           | ✅       | ✅  |
 | Login + sincronización Firebase  | ✅       | ✅  |
-| Widget en home (texto/voz)       | ❌       | ✅  |
+| Widget de ingreso rápido (voz/texto) | ❌       | ✅  |
 | Chat financiero IA               | ❌       | ✅  |
 | Notificaciones IA avanzadas      | ❌       | ✅  |
 | Optimización tributaria          | ❌       | ✅  |
@@ -188,6 +188,63 @@ assets/
 
 ---
 
+## 🎯 Funcionalidades Post-Producción
+
+### 1. Funcionalidad de Ahorro
+**Complejidad**: Media-Baja
+**Tiempo estimado**: 3-4 días
+
+#### Implementación necesaria:
+1. **Nuevo modelo para Ahorro**:
+   - Monto objetivo
+   - Monto actual
+   - Tipo de ahorro (emergencia, inversión)
+   - Fecha objetivo
+   - Estado del ahorro
+
+2. **Modificación regla 50/30/20**:
+   - Subdivisión del 20%:
+     • Ahorro (10%)
+     • Inversión (10%)
+   - Tracking del progreso
+
+3. **Nueva sección en Reports**:
+   - Tarjeta "Ahorro e Inversión"
+   - Gráfico de progreso
+   - Estadísticas de cumplimiento
+
+### 2. Funcionalidad de Deudas
+**Complejidad**: Media
+**Tiempo estimado**: 4-5 días
+
+#### Implementación necesaria:
+1. **Nuevo modelo para Deudas**:
+   - Monto total de la deuda
+   - Tasa de interés
+   - Plazo
+   - Cuota mensual
+   - Estado de la deuda
+   - Historial de pagos
+
+2. **Integración con regla 50/30/20**:
+   - Deudas dentro del 20%
+   - Priorización automática
+   - Calculadora de capacidad de pago
+
+3. **Nueva sección en Reports**:
+   - Tarjeta "Gestión de Deudas"
+   - Plan de pagos
+   - Proyección de liberación
+
+#### Notas de implementación:
+- Mantener consistencia con UI actual
+- Reutilizar widgets existentes
+- Agregar validaciones de porcentajes
+- Incluir tooltips explicativos
+- Implementar en orden: Ahorro → Deudas
+
+---
+
 ## 📦 Consideraciones para Escalabilidad
 - Separar lógica y UI desde el MVP.
 - Usar control de versiones en Firestore desde el inicio.
@@ -204,3 +261,70 @@ Sí, estás siguiendo el camino correcto. Tienes una idea clara, útil, bien def
 Cuando crees que está listo para implementar la IA o escalar a más países, ya habrás aprendido mucho de tus usuarios reales.
 
 ¡Vamos con toda! 💪
+
+---
+
+## 📱 Descripción Google Play Console
+
+**Descripción Corta (80 caracteres máximo):**
+```
+Gestiona tus finanzas personales de forma simple y efectiva. ¡Toma el control de tus gastos!
+```
+
+**Descripción Larga:**
+```
+FinanzApp es tu compañero perfecto para tomar el control de tus finanzas personales de manera inteligente y sencilla. Diseñada específicamente para usuarios en Colombia, esta aplicación te ayuda a:
+
+✨ CARACTERÍSTICAS ACTUALES (GRATIS):
+• Registra fácilmente tus ingresos y gastos diarios
+• Visualiza tu balance financiero en tiempo real
+• Establece y controla presupuestos mensuales
+• Analiza tus gastos por categorías con gráficos intuitivos
+• Genera informes detallados de tus finanzas
+• Exporta tus datos a Excel para análisis más profundos
+
+📊 GESTIÓN INTELIGENTE:
+• Interfaz moderna y fácil de usar
+• Categorización intuitiva de gastos
+• Resúmenes mensuales detallados
+• Estadísticas claras y útiles
+• Sistema de presupuestos flexible
+
+💡 BENEFICIOS:
+• Toma mejores decisiones financieras
+• Identifica gastos innecesarios
+• Mejora tus hábitos de ahorro
+• Mantén un registro ordenado de tus finanzas
+• Alcanza tus metas financieras
+
+🔒 SEGURIDAD Y PRIVACIDAD:
+• Datos almacenados localmente en tu dispositivo
+• No requiere conexión constante a internet
+• Sin acceso a tus cuentas bancarias
+• Respaldo local de tu información
+
+🚀 PRÓXIMAMENTE (Basado en feedback de usuarios):
+• Más funcionalidades gratuitas:
+  - Gestión de ahorros
+  - Control de deudas
+  - Nuevas categorías personalizables
+  - Más opciones de exportación
+  - Mejoras en la visualización de estadísticas
+
+⭐ VERSIÓN PRO (Próximamente):
+• Widget de ingreso rápido por voz o texto
+• Análisis avanzado de patrones de gasto
+• Asistente financiero con IA
+• Notificaciones inteligentes
+• Consejos personalizados
+• Sin publicidad
+• Y más funciones basadas en tus sugerencias
+
+📈 EVOLUCIÓN CONSTANTE:
+Estamos comprometidos con mejorar tu experiencia. Las actualizaciones y nuevas funcionalidades se basarán en tus comentarios y necesidades. ¡Tu opinión es importante para nosotros!
+
+Comienza hoy a mejorar tu salud financiera con FinanzApp, la aplicación que hace que gestionar tu dinero sea fácil y efectivo.
+
+¡Descarga gratis y da el primer paso hacia una mejor gestión de tus finanzas personales!
+
+Nota: Esta aplicación no requiere acceso a tus cuentas bancarias y toda la información es ingresada manualmente por ti para mayor seguridad.

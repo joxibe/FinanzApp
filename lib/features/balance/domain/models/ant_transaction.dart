@@ -27,12 +27,13 @@ class AntTransaction {
     required double amount,
     required AntCategory category,
     required AntTransactionType type,
+    DateTime? date,
   }) {
     return AntTransaction(
       id: const Uuid().v4(),
       description: description,
       amount: amount,
-      date: DateTime.now(),
+      date: date ?? DateTime.now(),
       category: category,
       type: type,
     );

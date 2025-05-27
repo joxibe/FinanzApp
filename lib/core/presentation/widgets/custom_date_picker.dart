@@ -156,308 +156,226 @@ class _CustomDatePickerState extends State<CustomDatePicker> with TickerProvider
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        await _onCancel();
-        return false;
-      },
-      child: GestureDetector(
-        onTap: _onCancel,
-        child: Scaffold(
-          backgroundColor: Colors.black.withOpacity(0.5),
-          body: Center(
-            child: GestureDetector(
-              onTap: () {}, // Prevenir que el tap llegue al Scaffold
-              child: AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _scaleAnimation.value,
-                    child: Opacity(
-                      opacity: _fadeAnimation.value,
-                      child: Material(
-                        elevation: 8,
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          width: 320,
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(16),
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: AnimatedBuilder(
+        animation: _animationController,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Opacity(
+              opacity: _fadeAnimation.value,
+              child: Container(
+                width: 320,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Seleccionar fecha',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
                           ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Header
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Seleccionar fecha',
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.edit_outlined,
-                                    size: 20,
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
-                                ],
-                              ),
-                              
-                              // Selected date
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    widget.showMonthOnly 
-                                        ? '$_monthName $_currentYear'
-                                        : _formatSelectedDate(),
-                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      color: Theme.of(context).colorScheme.primary,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              
-                              // Divider
-                              const Divider(height: 24),
-                              
-                              // Month/Year selector and navigation
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  IconButton(
-                                    onPressed: _previousMonth,
-                                    icon: const Icon(Icons.chevron_left),
-                                    iconSize: 28,
-                                  ),
-                                  
-                                  Stack(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: _toggleYearPicker,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 8,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                '$_monthName $_currentYear',
-                                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Icon(
-                                                _showYearPicker ? Icons.expand_less : Icons.expand_more,
-                                                size: 20,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      
-                                      // Year picker dropdown
-                                      if (_showYearPicker)
-                                        Positioned(
-                                          top: 40,
-                                          child: AnimatedBuilder(
-                                            animation: _yearPickerAnimation,
-                                            builder: (context, child) {
-                                              return Transform.scale(
-                                                scale: _yearPickerAnimation.value,
-                                                alignment: Alignment.topCenter,
-                                                child: Opacity(
-                                                  opacity: _yearPickerAnimation.value,
-                                                  child: Material(
-                                                    elevation: 4,
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    child: Container(
-                                                      height: 200,
-                                                      width: 120,
-                                                      decoration: BoxDecoration(
-                                                        color: Theme.of(context).colorScheme.surface,
-                                                        borderRadius: BorderRadius.circular(8),
-                                                        border: Border.all(
-                                                          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                                                        ),
-                                                      ),
-                                                      child: ListView.builder(
-                                                        itemCount: _availableYears.length,
-                                                        itemBuilder: (context, index) {
-                                                          final year = _availableYears[index];
-                                                          final isSelected = year == _currentYear;
-                                                          return InkWell(
-                                                            onTap: () => _selectYear(year),
-                                                            child: Container(
-                                                              padding: const EdgeInsets.symmetric(vertical: 12),
-                                                              color: isSelected 
-                                                                  ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
-                                                                  : null,
-                                                              child: Center(
-                                                                child: Text(
-                                                                  year.toString(),
-                                                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                                                    color: isSelected 
-                                                                        ? Theme.of(context).colorScheme.primary
-                                                                        : null,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          );
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  
-                                  IconButton(
-                                    onPressed: _nextMonth,
-                                    icon: const Icon(Icons.chevron_right),
-                                    iconSize: 28,
-                                  ),
-                                ],
-                              ),
-                              
-                              if (!widget.showMonthOnly) ...[
-                                const SizedBox(height: 16),
-                                
-                                // Days of week header
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: _dayNames.map((day) {
-                                    return Container(
-                                      width: 36,
-                                      height: 36,
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        day,
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                                
-                                const SizedBox(height: 8),
-                                
-                                // Calendar grid
-                                SizedBox(
-                                  height: 220,
-                                  child: GridView.builder(
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 7,
-                                      childAspectRatio: 1,
-                                    ),
-                                    itemCount: 42, // 6 weeks
-                                    itemBuilder: (context, index) {
-                                      final dayOffset = index - _firstDayOfWeek;
-                                      
-                                      if (dayOffset < 0 || dayOffset >= _daysInMonth) {
-                                        return const SizedBox();
-                                      }
-                                      
-                                      final day = dayOffset + 1;
-                                      final isSelected = day == _selectedDate.day && 
-                                                       _currentMonth == _selectedDate.month && 
-                                                       _currentYear == _selectedDate.year;
-                                      final isToday = day == DateTime.now().day && 
-                                                     _currentMonth == DateTime.now().month && 
-                                                     _currentYear == DateTime.now().year;
-                                      
-                                      return GestureDetector(
-                                        onTap: () => _selectDay(day),
-                                        child: Container(
-                                          margin: const EdgeInsets.all(2),
-                                          decoration: BoxDecoration(
-                                            color: isSelected 
-                                                ? Theme.of(context).colorScheme.primary
-                                                : isToday
-                                                    ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
-                                                    : null,
-                                            borderRadius: BorderRadius.circular(18),
-                                            border: isToday && !isSelected
-                                                ? Border.all(
-                                                    color: Theme.of(context).colorScheme.primary,
-                                                    width: 1,
-                                                  )
-                                                : null,
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              day.toString(),
-                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                color: isSelected 
-                                                    ? Theme.of(context).colorScheme.onPrimary
-                                                    : isToday
-                                                        ? Theme.of(context).colorScheme.primary
-                                                        : null,
-                                                fontWeight: isSelected || isToday ? FontWeight.w600 : FontWeight.normal,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                              
-                              const SizedBox(height: 24),
-                              
-                              // Action buttons
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  TextButton(
-                                    onPressed: _onCancel,
-                                    child: Text(
-                                      'Cancelar',
-                                      style: TextStyle(
-                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  FilledButton(
-                                    onPressed: _onOk,
-                                    child: const Text('Aceptar'),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: _onCancel,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Fecha seleccionada
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _formatSelectedDate(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                  );
-                },
+                    const SizedBox(height: 16),
+
+                    // Selector de mes y año
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left),
+                          onPressed: _previousMonth,
+                        ),
+                        GestureDetector(
+                          onTap: _toggleYearPicker,
+                          child: Text(
+                            '$_monthName $_currentYear',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right),
+                          onPressed: _nextMonth,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Días de la semana
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: _dayNames.map((day) => SizedBox(
+                        width: 32,
+                        child: Text(
+                          day,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )).toList(),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Calendario
+                    if (!_showYearPicker) ...[
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 7,
+                          childAspectRatio: 1,
+                        ),
+                        itemCount: _firstDayOfWeek + _daysInMonth,
+                        itemBuilder: (context, index) {
+                          if (index < _firstDayOfWeek) return const SizedBox();
+                          
+                          final day = index - _firstDayOfWeek + 1;
+                          final isSelected = _selectedDate.year == _currentYear &&
+                              _selectedDate.month == _currentMonth &&
+                              _selectedDate.day == day;
+
+                          return InkWell(
+                            onTap: () => _selectDay(day),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              margin: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  day.toString(),
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Theme.of(context).colorScheme.onSurface,
+                                    fontWeight: isSelected ? FontWeight.bold : null,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ] else ...[
+                      // Selector de año
+                      AnimatedBuilder(
+                        animation: _yearPickerAnimation,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _yearPickerAnimation.value,
+                            child: SizedBox(
+                              height: 200,
+                              child: GridView.builder(
+                                shrinkWrap: true,
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  childAspectRatio: 2,
+                                ),
+                                itemCount: _availableYears.length,
+                                itemBuilder: (context, index) {
+                                  final year = _availableYears[index];
+                                  final isSelected = year == _currentYear;
+
+                                  return InkWell(
+                                    onTap: () => _selectYear(year),
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      margin: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          year.toString(),
+                                          style: TextStyle(
+                                            color: isSelected
+                                                ? Colors.white
+                                                : Theme.of(context).colorScheme.onSurface,
+                                            fontWeight: isSelected ? FontWeight.bold : null,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+
+                    const SizedBox(height: 16),
+
+                    // Botones de acción
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: _onCancel,
+                          child: const Text('Cancelar'),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton(
+                          onPressed: _onOk,
+                          child: const Text('Aceptar'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

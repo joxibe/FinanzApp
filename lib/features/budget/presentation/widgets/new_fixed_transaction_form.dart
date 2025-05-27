@@ -168,54 +168,6 @@ class _NewFixedTransactionFormState extends State<NewFixedTransactionForm> with 
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Tipo de transacción
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutCubic,
-            child: SegmentedButton<FixedTransactionType>(
-              segments: const [
-                ButtonSegment<FixedTransactionType>(
-                  value: FixedTransactionType.expense,
-                  label: Text('Gasto'),
-                  icon: Icon(Icons.remove_circle_outline),
-                ),
-                ButtonSegment<FixedTransactionType>(
-                  value: FixedTransactionType.income,
-                  label: Text('Ingreso'),
-                  icon: Icon(Icons.add_circle_outline),
-                ),
-              ],
-              selected: {_selectedType},
-              onSelectionChanged: (Set<FixedTransactionType> selected) {
-                _handleTypeChange(selected.first);
-              },
-              style: ButtonStyle(
-                shape: MaterialStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-                  if (states.contains(MaterialState.selected)) {
-                    return _selectedType == FixedTransactionType.expense
-                        ? const Color(0xFFED8936).withOpacity(0.1)
-                        : const Color(0xFF48BB78).withOpacity(0.1);
-                  }
-                  return Colors.transparent;
-                }),
-                foregroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-                  if (states.contains(MaterialState.selected)) {
-                    return _selectedType == FixedTransactionType.expense
-                        ? const Color(0xFFED8936)
-                        : const Color(0xFF48BB78);
-                  }
-                  return Theme.of(context).colorScheme.onSurfaceVariant;
-                }),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
           // Descripción
           AnimatedFormField(
             controller: _descriptionController,

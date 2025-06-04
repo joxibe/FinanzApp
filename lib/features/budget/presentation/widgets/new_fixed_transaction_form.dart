@@ -103,6 +103,7 @@ class _NewFixedTransactionFormState extends State<NewFixedTransactionForm> with 
             Navigator.of(context).pop();
           },
           showMonthOnly: true,
+          restrictToCurrentMonth: true,
         );
       },
     );
@@ -204,22 +205,35 @@ class _NewFixedTransactionFormState extends State<NewFixedTransactionForm> with 
           const SizedBox(height: 16),
 
           // Fecha
-          InkWell(
-            onTap: () => _selectDate(context),
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: 'Día del mes',
-                prefixIcon: const Icon(Icons.calendar_today),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InkWell(
+                onTap: () => _selectDate(context),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Día del mes',
+                    prefixIcon: const Icon(Icons.calendar_today),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                  ),
+                  child: Text(
+                    'Día ${_selectedDate.day}',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                 ),
-                filled: true,
               ),
-              child: Text(
-                'Día ${_selectedDate.day}',
-                style: Theme.of(context).textTheme.bodyLarge,
+              const SizedBox(height: 8),
+              Text(
+                'Selecciona el día del mes en que se realizará esta transacción fija. Este día se mantendrá para los meses siguientes.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: 16),
 

@@ -80,6 +80,7 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
             Navigator.of(context).pop();
           },
           showMonthOnly: true,
+          restrictToCurrentMonth: true,
         );
       },
     );
@@ -229,22 +230,35 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
           const SizedBox(height: 16),
 
           // Día del mes
-          InkWell(
-            onTap: () => _selectDay(context),
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: 'Día del mes',
-                prefixIcon: const Icon(Icons.calendar_today),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InkWell(
+                onTap: () => _selectDay(context),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Día del mes',
+                    prefixIcon: const Icon(Icons.calendar_today),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                  ),
+                  child: Text(
+                    'Día $_selectedDay',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                 ),
-                filled: true,
               ),
-              child: Text(
-                'Día $_selectedDay',
-                style: Theme.of(context).textTheme.bodyLarge,
+              const SizedBox(height: 8),
+              Text(
+                'Selecciona el día del mes en que se realizará esta transacción fija. Este día se mantendrá para los meses siguientes.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: 16),
 

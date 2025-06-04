@@ -5,6 +5,7 @@ class CustomDatePicker extends StatefulWidget {
   final Function(DateTime) onDateSelected;
   final VoidCallback onCancel;
   final bool showMonthOnly;
+  final bool restrictToCurrentMonth;
 
   const CustomDatePicker({
     super.key,
@@ -12,6 +13,7 @@ class CustomDatePicker extends StatefulWidget {
     required this.onDateSelected,
     required this.onCancel,
     this.showMonthOnly = false,
+    this.restrictToCurrentMonth = false,
   });
 
   @override
@@ -39,7 +41,12 @@ class _CustomDatePickerState extends State<CustomDatePicker> with TickerProvider
   @override
   void initState() {
     super.initState();
-    _selectedDate = widget.initialDate;
+    final now = DateTime.now();
+    _selectedDate = widget.restrictToCurrentMonth 
+        ? (widget.initialDate.month == now.month && widget.initialDate.year == now.year 
+            ? widget.initialDate 
+            : now)
+        : widget.initialDate;
     _currentMonth = _selectedDate.month;
     _currentYear = _selectedDate.year;
 
@@ -91,6 +98,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> with TickerProvider
   }
 
   void _previousMonth() {
+    if (widget.restrictToCurrentMonth) return;
     setState(() {
       if (_currentMonth == 1) {
         _currentMonth = 12;
@@ -102,6 +110,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> with TickerProvider
   }
 
   void _nextMonth() {
+    if (widget.restrictToCurrentMonth) return;
     setState(() {
       if (_currentMonth == 12) {
         _currentMonth = 1;
@@ -113,12 +122,17 @@ class _CustomDatePickerState extends State<CustomDatePicker> with TickerProvider
   }
 
   void _selectDay(int day) {
+    final now = DateTime.now();
+    if (widget.restrictToCurrentMonth && (_currentMonth != now.month || _currentYear != now.year)) {
+      return;
+    }
     setState(() {
       _selectedDate = DateTime(_currentYear, _currentMonth, day);
     });
   }
 
   void _toggleYearPicker() {
+    if (widget.restrictToCurrentMonth) return;
     setState(() {
       _showYearPicker = !_showYearPicker;
     });
@@ -130,6 +144,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> with TickerProvider
   }
 
   void _selectYear(int year) {
+    if (widget.restrictToCurrentMonth) return;
     setState(() {
       _currentYear = year;
       _showYearPicker = false;
@@ -216,12 +231,14 @@ class _CustomDatePickerState extends State<CustomDatePicker> with TickerProvider
 
                     // Selector de mes y año
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.chevron_left),
-                          onPressed: _previousMonth,
-                        ),
+                        if (!widget.restrictToCurrentMonth) ...[
+                          IconButton(
+                            icon: const Icon(Icons.chevron_left),
+                            onPressed: _previousMonth,
+                          ),
+                        ],
                         GestureDetector(
                           onTap: _toggleYearPicker,
                           child: Text(
@@ -232,10 +249,12 @@ class _CustomDatePickerState extends State<CustomDatePicker> with TickerProvider
                             ),
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.chevron_right),
-                          onPressed: _nextMonth,
-                        ),
+                        if (!widget.restrictToCurrentMonth) ...[
+                          IconButton(
+                            icon: const Icon(Icons.chevron_right),
+                            onPressed: _nextMonth,
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 8),

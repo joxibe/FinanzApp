@@ -152,14 +152,17 @@ class AppState extends ChangeNotifier {
         return;
       }
       
-      // Buscar transacciones del mes anterior para copiarlas
-      final previousMonth = DateTime(month.year, month.month - 1);
+      // Buscar transacciones del mes anterior
+      final previousMonth = DateTime(
+        month.month == 1 ? month.year - 1 : month.year,
+        month.month == 1 ? 12 : month.month - 1,
+      );
       
       // Obtener transacciones del mes anterior
-      final previousMonthTransactions = await _fixedTransactionRepo.getTransactionsByDateRange(
-        DateTime(previousMonth.year, previousMonth.month, 1),
-        DateTime(previousMonth.year, previousMonth.month + 1, 0),
-      );
+      final previousMonthTransactions = _fixedTransactions.where((tx) =>
+        tx.date.year == previousMonth.year && 
+        tx.date.month == previousMonth.month
+      ).toList();
       
       // Verificar si ya existen transacciones para este mes
       final currentMonthTransactions = _fixedTransactions.where((tx) => 
@@ -171,11 +174,19 @@ class AppState extends ChangeNotifier {
       if (currentMonthTransactions.isEmpty && previousMonthTransactions.isNotEmpty) {
         // Copiar cada transacción del mes anterior al mes actual
         for (final tx in previousMonthTransactions) {
-          final newTx = tx.copyWith(
-            id: null,
-            date: DateTime(month.year, month.month, tx.dayOfMonth),
+          final newTx = FixedTransaction.create(
+            description: tx.description,
+            amount: tx.amount,
+            category: tx.category,
+            dayOfMonth: tx.dayOfMonth,
+            type: tx.type,
           );
-          await _fixedTransactionRepo.addTransaction(newTx);
+          
+          // Ajustar la fecha al mes actual
+          final newDate = DateTime(month.year, month.month, tx.dayOfMonth);
+          final adjustedTx = newTx.copyWith(date: newDate);
+          
+          await _fixedTransactionRepo.addTransaction(adjustedTx);
         }
         
         // Recargar transacciones

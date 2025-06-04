@@ -264,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   String title = '';
                   switch (appState.selectedIndex) {
                     case 0:
-                      title = 'Balance';
+                      title = 'Gastos hormiga mensual';
                       info = 'Registra tus gastos e ingresos hormiga del mes actual. Estos son gastos variables que debes registrar cada mes, ya que no se copian automáticamente al siguiente mes.';
                       break;
                     case 1:
@@ -353,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
             animationDuration: const Duration(milliseconds: 500),
             destinations: [
               _buildNavDestination(0, Icons.account_balance_wallet_outlined, 
-                          Icons.account_balance_wallet, 'Balance', appState.selectedIndex, context),
+                          Icons.account_balance_wallet, 'Gastos hormiga', appState.selectedIndex, context),
               _buildNavDestination(1, Icons.calendar_month_outlined, 
                           Icons.calendar_month, 'Presupuesto', appState.selectedIndex, context),
               _buildNavDestination(2, Icons.bar_chart_outlined, 
@@ -394,7 +394,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _getScreenTitle(int index) {
     switch (index) {
       case 0:
-        return 'Balance';
+        return 'Gastos hormiga';
       case 1:
         return 'Presupuesto';
       case 2:

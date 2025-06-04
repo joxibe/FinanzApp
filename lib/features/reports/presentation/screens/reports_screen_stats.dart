@@ -26,6 +26,7 @@ const Map<String, List<String>> _budgetCategories = {
     'Educacion',
     'Tarjetas de credito',
     'Creditos',
+    'Gastos hormiga',
   ],
   'Ahorro e Inversión (20%)': [
     'Fondo de emergencia',
@@ -34,6 +35,14 @@ const Map<String, List<String>> _budgetCategories = {
     'Deudas',
   ],
 };
+
+String _getMonthName(int month) {
+  const months = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+  return months[month - 1];
+}
 
 class StatisticsCard extends StatelessWidget {
   final DateTime selectedDate;
@@ -62,9 +71,22 @@ class StatisticsCard extends StatelessWidget {
         }).toList();
 
         // Calcular ingresos fijos totales según la vista
-        final totalFixedIncome = filteredFixedTransactions
-            .where((t) => t.type == FixedTransactionType.income)
-            .fold(0.0, (sum, t) => sum + t.amount);
+        double totalFixedIncome;
+        if (isAnnualView) {
+          // Para vista anual, sumamos los ingresos de cada mes
+          final Map<int, double> monthlyIncomes = {};
+          for (var transaction in filteredFixedTransactions.where((t) => t.type == FixedTransactionType.income)) {
+            final month = transaction.date.month;
+            monthlyIncomes[month] = (monthlyIncomes[month] ?? 0) + transaction.amount;
+          }
+          // Sumamos el ingreso mensual de cada mes
+          totalFixedIncome = monthlyIncomes.values.fold(0.0, (sum, monthIncome) => sum + monthIncome);
+        } else {
+          // Para vista mensual, sumamos los ingresos del mes
+          totalFixedIncome = filteredFixedTransactions
+              .where((t) => t.type == FixedTransactionType.income)
+              .fold(0.0, (sum, t) => sum + t.amount);
+        }
 
         // Calcular gastos actuales por categoría según la regla 50/30/20
         double necesidadesBasicas = 0.0;
@@ -109,16 +131,16 @@ class StatisticsCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 _ExpandableStatisticItem(
-                  title: isAnnualView ? 'Gastos por Mes' : 'Gastos por Día',
-                  value: isAnnualView ? 'Año ${selectedDate.year}' : 'Mes actual',
+                  title: isAnnualView ? 'Promedio Mensual' : 'Promedio Diario',
+                  value: isAnnualView ? 'Promedio por mes' : 'Promedio por día',
                   amount: _calculateDailyAverage(appState.antTransactions, selectedDate, isAnnualView),
                   icon: Icons.calendar_today,
                   onTap: () {
                     final stats = _calculateDailyStats(appState.antTransactions, selectedDate, isAnnualView);
                     showDialog(
                       context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text(isAnnualView ? 'Análisis de gastos mensuales' : 'Análisis de gastos diarios'),
+                      builder: (context) => _BaseDialog(
+                        title: isAnnualView ? 'Análisis de gastos mensuales' : 'Análisis de gastos diarios',
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,23 +153,31 @@ class StatisticsCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
                             if (isAnnualView) ...[
-                              // Mostrar gastos por mes para vista anual
-                              ...List.generate(12, (index) {
-                                final monthDate = DateTime(selectedDate.year, index + 1);
-                                final monthStats = _calculateDailyStats(
-                                  appState.antTransactions,
-                                  monthDate,
-                                  false
-                                );
-                                return _StatisticItem(
-                                  title: _getMonthName(index + 1),
-                                  value: '${monthStats['count'] ?? 0} transacciones',
-                                  amount: NumberFormatter.formatCurrency(monthStats['total'] ?? 0),
-                                  icon: Icons.calendar_month,
-                                );
-                              }),
+                              _StatisticItem(
+                                title: 'Promedio mensual',
+                                value: 'Todos los meses',
+                                amount: NumberFormatter.formatCurrency(stats['average'] ?? 0),
+                                icon: Icons.trending_up,
+                              ),
+                              const SizedBox(height: 8),
+                              _StatisticItem(
+                                title: 'Mes con más gastos',
+                                value: stats['maxDate'] != null 
+                                  ? _getMonthName(stats['maxDate']!.month)
+                                  : 'Sin datos',
+                                amount: NumberFormatter.formatCurrency(stats['maxAmount'] ?? 0),
+                                icon: Icons.arrow_upward,
+                              ),
+                              const SizedBox(height: 8),
+                              _StatisticItem(
+                                title: 'Mes con menos gastos',
+                                value: stats['minDate'] != null 
+                                  ? _getMonthName(stats['minDate']!.month)
+                                  : 'Sin datos',
+                                amount: NumberFormatter.formatCurrency(stats['minAmount'] ?? 0),
+                                icon: Icons.arrow_downward,
+                              ),
                             ] else ...[
-                              // Mostrar gastos por día para vista mensual
                               _StatisticItem(
                                 title: 'Promedio diario',
                                 value: 'Todos los días',
@@ -173,14 +203,53 @@ class StatisticsCard extends StatelessWidget {
                                 icon: Icons.arrow_downward,
                               ),
                             ],
+                            const SizedBox(height: 24),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        isAnnualView ? Icons.calendar_month : Icons.calendar_today,
+                                        color: Theme.of(context).colorScheme.primary,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        isAnnualView ? 'Consejo del Año' : 'Consejo del Mes',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    isAnnualView
+                                        ? 'Analiza tus gastos mes a mes para identificar patrones y temporadas de mayor gasto. '
+                                          'Esto te ayudará a planificar mejor tu presupuesto anual y establecer metas realistas de ahorro.'
+                                        : 'Observa tus patrones de gasto diario para entender mejor tus hábitos financieros. '
+                                          'Los días de mayor gasto pueden indicar oportunidades de ahorro o necesidad de mejor planificación.',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cerrar'),
-                          ),
-                        ],
                       ),
                     );
                   },
@@ -191,9 +260,25 @@ class StatisticsCard extends StatelessWidget {
                   onTap: () => showBudgetRuleDialog(context, appState, selectedDate, isAnnualView),
                 ),
                 const SizedBox(height: 12),
-                _GastosHormigaItem(
-                  amount: NumberFormatter.formatCurrency(_calculateTotalPotentialSaving(appState.antTransactions, selectedDate, isAnnualView)),
-                  onTap: () => onShowGastosHormigaAnalysis(context, appState, selectedDate, isAnnualView),
+                Tooltip(
+                  message: 'Total de gastos hormiga en el período seleccionado.\n'
+                          'Los gastos hormiga son pequeños gastos frecuentes que sumados pueden representar una cantidad significativa.\n'
+                          'Toca para ver el análisis detallado y descubrir tu potencial de ahorro.',
+                  child: _GastosHormigaItem(
+                    amount: NumberFormatter.formatCurrency(
+                      isAnnualView
+                        ? appState.antTransactions
+                            .where((t) => t.date.year == selectedDate.year)
+                            .where((t) => t.type == AntTransactionType.expense)
+                            .fold<double>(0, (sum, t) => sum + t.amount)
+                        : appState.antTransactions
+                            .where((t) => t.date.year == selectedDate.year && 
+                                        t.date.month == selectedDate.month)
+                            .where((t) => t.type == AntTransactionType.expense)
+                            .fold<double>(0, (sum, t) => sum + t.amount)
+                    ),
+                    onTap: () => onShowGastosHormigaAnalysis(context, appState, selectedDate, isAnnualView),
+                  ),
                 ),
               ],
             ),
@@ -201,14 +286,6 @@ class StatisticsCard extends StatelessWidget {
         );
       },
     );
-  }
-
-  String _getMonthName(int month) {
-    const months = [
-      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-    ];
-    return months[month - 1];
   }
 
   String _calculateDailyAverage(List<AntTransaction> transactions, DateTime selectedDate, bool isAnnualView) {
@@ -227,9 +304,16 @@ class StatisticsCard extends StatelessWidget {
         .where((t) => t.type == AntTransactionType.expense)
         .fold<double>(0, (sum, t) => sum + t.amount);
 
-    final daysInPeriod = isAnnualView ? 365 : DateTime(selectedDate.year, selectedDate.month + 1, 0).day;
-    final average = totalExpenses / daysInPeriod;
-    return NumberFormatter.formatCurrency(average);
+    if (isAnnualView) {
+      // Para vista anual, calculamos el promedio mensual
+      final average = totalExpenses / 12;
+      return NumberFormatter.formatCurrency(average);
+    } else {
+      // Para vista mensual, calculamos el promedio diario
+      final daysInMonth = DateTime(selectedDate.year, selectedDate.month + 1, 0).day;
+      final average = totalExpenses / daysInMonth;
+      return NumberFormatter.formatCurrency(average);
+    }
   }
 
   Map<String, dynamic> _calculateDailyStats(List<AntTransaction> transactions, DateTime selectedDate, bool isAnnualView) {
@@ -254,48 +338,90 @@ class StatisticsCard extends StatelessWidget {
       };
     }
 
-    final Map<DateTime, double> dailyExpenses = {};
-    for (var transaction in filteredTransactions.where((t) => t.type == AntTransactionType.expense)) {
-      final date = DateTime(
-        transaction.date.year,
-        transaction.date.month,
-        transaction.date.day,
-      );
-      dailyExpenses[date] = (dailyExpenses[date] ?? 0) + transaction.amount;
+    if (isAnnualView) {
+      // Para vista anual, agrupamos por mes
+      final Map<DateTime, double> monthlyExpenses = {};
+      for (var transaction in filteredTransactions.where((t) => t.type == AntTransactionType.expense)) {
+        final date = DateTime(transaction.date.year, transaction.date.month);
+        monthlyExpenses[date] = (monthlyExpenses[date] ?? 0) + transaction.amount;
+      }
+
+      double totalExpenses = 0;
+      double minAmount = double.infinity;
+      DateTime? minDate;
+      double maxAmount = 0;
+      DateTime? maxDate;
+
+      monthlyExpenses.forEach((date, amount) {
+        totalExpenses += amount;
+        
+        if (amount < minAmount) {
+          minAmount = amount;
+          minDate = date;
+        }
+        
+        if (amount > maxAmount) {
+          maxAmount = amount;
+          maxDate = date;
+        }
+      });
+
+      final average = totalExpenses / 12; // Promedio mensual
+
+      return {
+        'average': average,
+        'minAmount': minAmount == double.infinity ? 0 : minAmount,
+        'minDate': minDate,
+        'maxAmount': maxAmount,
+        'maxDate': maxDate,
+        'total': totalExpenses,
+        'count': filteredTransactions.where((t) => t.type == AntTransactionType.expense).length,
+      };
+    } else {
+      // Para vista mensual, agrupamos por día
+      final Map<DateTime, double> dailyExpenses = {};
+      for (var transaction in filteredTransactions.where((t) => t.type == AntTransactionType.expense)) {
+        final date = DateTime(
+          transaction.date.year,
+          transaction.date.month,
+          transaction.date.day,
+        );
+        dailyExpenses[date] = (dailyExpenses[date] ?? 0) + transaction.amount;
+      }
+
+      double totalExpenses = 0;
+      double minAmount = double.infinity;
+      DateTime? minDate;
+      double maxAmount = 0;
+      DateTime? maxDate;
+
+      dailyExpenses.forEach((date, amount) {
+        totalExpenses += amount;
+        
+        if (amount < minAmount) {
+          minAmount = amount;
+          minDate = date;
+        }
+        
+        if (amount > maxAmount) {
+          maxAmount = amount;
+          maxDate = date;
+        }
+      });
+
+      final daysInMonth = DateTime(selectedDate.year, selectedDate.month + 1, 0).day;
+      final average = totalExpenses / daysInMonth; // Promedio diario
+
+      return {
+        'average': average,
+        'minAmount': minAmount == double.infinity ? 0 : minAmount,
+        'minDate': minDate,
+        'maxAmount': maxAmount,
+        'maxDate': maxDate,
+        'total': totalExpenses,
+        'count': filteredTransactions.where((t) => t.type == AntTransactionType.expense).length,
+      };
     }
-
-    double totalExpenses = 0;
-    double minAmount = double.infinity;
-    DateTime? minDate;
-    double maxAmount = 0;
-    DateTime? maxDate;
-
-    dailyExpenses.forEach((date, amount) {
-      totalExpenses += amount;
-      
-      if (amount < minAmount) {
-        minAmount = amount;
-        minDate = date;
-      }
-      
-      if (amount > maxAmount) {
-        maxAmount = amount;
-        maxDate = date;
-      }
-    });
-
-    final daysInPeriod = isAnnualView ? 365 : DateTime(selectedDate.year, selectedDate.month + 1, 0).day;
-    final average = totalExpenses / daysInPeriod;
-
-    return {
-      'average': average,
-      'minAmount': minAmount == double.infinity ? 0 : minAmount,
-      'minDate': minDate,
-      'maxAmount': maxAmount,
-      'maxDate': maxDate,
-      'total': totalExpenses,
-      'count': filteredTransactions.where((t) => t.type == AntTransactionType.expense).length,
-    };
   }
 
   double _calculateTotalPotentialSaving(List<AntTransaction> transactions, DateTime selectedDate, bool isAnnualView) {
@@ -375,12 +501,32 @@ class StatisticsCard extends StatelessWidget {
       transactionsByCategory[categoryName]!.add(transaction);
     }
 
+    // Si es vista anual, calcular totales mensuales por categoría
+    final Map<String, Map<int, double>> monthlyTotalsByCategory = {};
+    if (isAnnualView) {
+      transactionsByCategory.forEach((category, transactions) {
+        monthlyTotalsByCategory[category] = {};
+        for (var transaction in transactions) {
+          final month = transaction.date.month;
+          monthlyTotalsByCategory[category]![month] = 
+            (monthlyTotalsByCategory[category]![month] ?? 0) + transaction.amount;
+        }
+      });
+    }
+
     // Calcular totales y sugerencias por categoría
     final List<Map<String, dynamic>> categoryAnalysis = [];
     transactionsByCategory.forEach((category, transactions) {
-      final total = transactions.fold<double>(0, (sum, t) => sum + t.amount);
+      double total;
+      if (isAnnualView) {
+        // Para vista anual, sumamos los totales mensuales
+        total = monthlyTotalsByCategory[category]!.values.fold(0.0, (sum, monthTotal) => sum + monthTotal);
+      } else {
+        total = transactions.fold<double>(0, (sum, t) => sum + t.amount);
+      }
+      
       final count = transactions.length;
-      final average = total / count;
+      final average = isAnnualView ? total / 12 : total / count; // Promedio mensual o por transacción
 
       // Sugerencias específicas por categoría
       List<String> suggestions = [];
@@ -445,6 +591,7 @@ class StatisticsCard extends StatelessWidget {
         'potentialSaving': potentialSaving,
         'icon': transactions.first.category.icon,
         'color': transactions.first.category.color,
+        'monthlyTotals': isAnnualView ? monthlyTotalsByCategory[category] : null,
       });
     });
 
@@ -484,8 +631,30 @@ class StatisticsCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Total gastos hormiga: ${NumberFormatter.formatCurrency(filteredTransactions.where((t) => t.type == AntTransactionType.expense).fold<double>(0, (sum, t) => sum + t.amount))}',
+                      'Total gastos hormiga: ${NumberFormatter.formatCurrency(
+                        isAnnualView
+                          ? filteredTransactions
+                              .where((t) => t.type == AntTransactionType.expense)
+                              .fold<double>(0, (sum, t) => sum + t.amount)
+                          : filteredTransactions
+                              .where((t) => t.type == AntTransactionType.expense)
+                              .fold<double>(0, (sum, t) => sum + t.amount)
+                      )}',
                       style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isAnnualView
+                        ? 'Promedio mensual: ${NumberFormatter.formatCurrency(
+                            filteredTransactions
+                                .where((t) => t.type == AntTransactionType.expense)
+                                .fold<double>(0, (sum, t) => sum + t.amount) / 12
+                          )}'
+                        : '',
+                      style: const TextStyle(
+                        color: Colors.purple,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -536,6 +705,32 @@ class StatisticsCard extends StatelessWidget {
                                           mainAxisSize: MainAxisSize.min,
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
+                                            if (isAnnualView && analysis['monthlyTotals'] != null) ...[
+                                              Text(
+                                                'Gastos mensuales:',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: analysis['color'] as Color,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              ...(analysis['monthlyTotals'] as Map<int, double>).entries
+                                                  .map((entry) => Padding(
+                                                    padding: const EdgeInsets.only(bottom: 4),
+                                                    child: Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        Text(_getMonthName(entry.key)),
+                                                        Text(
+                                                          NumberFormatter.formatCurrency(entry.value),
+                                                          style: const TextStyle(fontWeight: FontWeight.w500),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ))
+                                                  .toList(),
+                                              const SizedBox(height: 16),
+                                            ],
                                             Text(
                                               'Sugerencias de ahorro:',
                                               style: TextStyle(
@@ -580,7 +775,9 @@ class StatisticsCard extends StatelessWidget {
                               ],
                             ),
                             Text(
-                              '${analysis['count']} transacciones • Promedio: ${NumberFormatter.formatCurrency(analysis['average'] as double)}',
+                              isAnnualView
+                                ? '${analysis['count']} transacciones • Promedio mensual: ${NumberFormatter.formatCurrency(analysis['average'] as double)}'
+                                : '${analysis['count']} transacciones • Promedio: ${NumberFormatter.formatCurrency(analysis['average'] as double)}',
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 fontSize: 12,
@@ -1105,6 +1302,21 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
     }
   }).toList();
 
+  // Filtrar transacciones hormiga según la vista seleccionada
+  final filteredAntTransactions = appState.antTransactions.where((t) {
+    if (isAnnualView) {
+      return t.date.year == selectedDate.year;
+    } else {
+      return t.date.year == selectedDate.year && 
+             t.date.month == selectedDate.month;
+    }
+  }).toList();
+
+  // Calcular total de gastos hormiga
+  final totalAntExpenses = filteredAntTransactions
+      .where((t) => t.type == AntTransactionType.expense)
+      .fold(0.0, (sum, t) => sum + t.amount);
+
   // Calcular ingresos fijos totales según la vista
   final totalFixedIncome = filteredFixedTransactions
       .where((t) => t.type == FixedTransactionType.income)
@@ -1135,6 +1347,9 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
       // ya que son gastos que deberían ser manejados manualmente
     }
   }
+
+  // Sumar gastos hormiga a los gastos personales (30%)
+  gastosPersonales += totalAntExpenses;
 
   // Calcular montos recomendados según la regla 50/30/20
   final necesidadesBasicasRecomendado = totalFixedIncome * 0.5;
@@ -1251,34 +1466,30 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text(
-                          'Esta categoría incluye gastos que mejoran tu calidad de vida:',
+                          'Esta categoría incluye gastos que mejoran tu calidad de vida y gastos hormiga:',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 16),
                         const _CategoryLegendItem(
-                          icon: Icons.movie,
-                          name: 'Entretenimiento',
-                          description: 'Cine, streaming, eventos y actividades recreativas',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.shopping_bag,
-                          name: 'Compras',
-                          description: 'Ropa, tecnología, artículos personales y otros bienes',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.subscriptions,
-                          name: 'Suscripciones',
-                          description: 'Servicios premium, membresías y suscripciones digitales',
+                          icon: Icons.person,
+                          name: 'Servicios Personales',
+                          description: 'Gimnasio, suscripciones, belleza, educación',
                         ),
                         const _CategoryLegendItem(
                           icon: Icons.credit_card,
-                          name: 'Tarjetas de crédito',
-                          description: 'Imprevistos, compras anticipadas, viajes',
+                          name: 'Obligaciones Financieras',
+                          description: 'Tarjetas de crédito, créditos personales',
                         ),
                         const _CategoryLegendItem(
-                          icon: Icons.monetization_on,
-                          name: 'Créditos',
-                          description: 'Moto, carro, casa',
+                          icon: Icons.more_horiz,
+                          name: 'Otros Gastos Fijos',
+                          description: 'Gastos personales fijos varios',
+                        ),
+                        const SizedBox(height: 16),
+                        const _CategoryLegendItem(
+                          icon: Icons.local_cafe,
+                          name: 'Gastos Hormiga',
+                          description: 'Cafés, snacks, comidas fuera, transporte ocasional, compras pequeñas',
                         ),
                         const SizedBox(height: 16),
                         Container(
@@ -1288,8 +1499,7 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
-                            'Consejo: Estos gastos son importantes para tu bienestar emocional, '
-                            'pero mantén un balance. Prioriza lo que realmente te hace feliz.',
+                            'Consejo: Estos gastos son importantes para tu calidad de vida y bienestar emocional, pero mantén un balance. En ocasiones prioriza lo que realmente te hace feliz.',
                             style: TextStyle(fontSize: 13),
                           ),
                         ),

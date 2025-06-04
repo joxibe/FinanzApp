@@ -308,7 +308,6 @@ FinanzApp es tu compañero perfecto para tomar el control de tus finanzas person
   - Gestión de ahorros
   - Control de deudas
   - Nuevas categorías personalizables
-  - Más opciones de exportación
   - Mejoras en la visualización de estadísticas
 
 ⭐ VERSIÓN PRO (Próximamente):

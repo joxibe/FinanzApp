@@ -206,7 +206,7 @@ class _BalanceScreenState extends State<BalanceScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          title,
+          'Gastos hormiga mensual',
           style: Theme.of(context).textTheme.titleLarge,
         ),
         _buildFilterButton(appState),

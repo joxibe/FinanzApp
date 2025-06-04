@@ -18,42 +18,62 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _OnboardingPageData(
       icon: Icons.account_balance_wallet,
       title: '¡Bienvenido a FinanzApp!',
-      description: 'Lleva el control de tus finanzas personales de forma sencilla, visual y moderna. FinanzApp te ayuda a entender y mejorar tu salud financiera.',
+      description: 'Tu compañero financiero personal que te ayuda a tomar el control de tus finanzas. Organiza tus gastos, establece presupuestos y alcanza tus metas financieras.',
+    ),
+    _OnboardingPageData(
+      icon: Icons.security,
+      title: 'Privacidad Primero',
+      description: 'Tus datos financieros son 100% privados y se almacenan localmente en tu dispositivo. No recolectamos información personal ni la compartimos con terceros. Tu privacidad es nuestra prioridad.',
+    ),
+    _OnboardingPageData(
+      icon: Icons.sync,
+      title: 'Respaldo de Datos',
+      description: 'Exporta tus datos financieros cuando quieras para tener un respaldo seguro. Puedes importarlos en cualquier momento o en otro dispositivo, manteniendo el control total de tu información.',
     ),
     _OnboardingPageData(
       icon: Icons.account_balance_wallet_outlined,
-      title: 'Balance Diario',
-      description: 'Consulta tu balance diario de ingresos y gastos hormiga del mes actual. Añade, edita y elimina movimientos fácilmente.',
+      title: 'Gastos Hormiga',
+      description: 'Registra tus gastos hormiga diarios por categorías, visualiza tu saldo disponible y mantén un registro detallado de cada movimiento. Ideal para controlar gastos pequeños que pueden sumar mucho.',
     ),
     _OnboardingPageData(
       icon: Icons.calendar_month,
-      title: 'Presupuesto Fijo',
-      description: 'Gestiona tus ingresos y gastos fijos mensuales y visualiza tu saldo disponible para gastos variables.',
+      title: 'Presupuesto Mensual',
+      description: 'Configura tus ingresos y gastos fijos mensuales como salario, arriendo, servicios, etc. El sistema los copiará automáticamente cada mes para que no tengas que ingresarlos de nuevo.',
+    ),
+    _OnboardingPageData(
+      icon: Icons.pie_chart,
+      title: 'Categorización Inteligente',
+      description: 'Organiza tus gastos en categorías predefinidas siguiendo la regla 50/30/20: 50% para necesidades básicas, 30% para gastos personales y 20% para ahorro e inversión.',
     ),
     _OnboardingPageData(
       icon: Icons.bar_chart,
-      title: 'Informes y Análisis',
-      description: 'Analiza tus gastos por categoría y accede a estadísticas útiles para mejorar tus finanzas.',
+      title: 'Informes Detallados',
+      description: 'Analiza tus patrones de gasto con gráficos intuitivos, compara meses anteriores y descubre oportunidades de ahorro. Visualiza el impacto de tus gastos hormiga en tu presupuesto.',
     ),
     _OnboardingPageData(
       icon: Icons.summarize,
-      title: 'Resumen Mensual y Anual',
-      description: 'Revisa un resumen mensual o anual de todos tus movimientos y balances, y accede al detalle de cada transacción.',
+      title: 'Resumen Financiero',
+      description: 'Accede a un panorama completo de tus finanzas con resúmenes mensuales y anuales. Visualiza tu progreso y toma decisiones informadas sobre tu dinero.',
+    ),
+    _OnboardingPageData(
+      icon: Icons.savings_outlined,
+      title: 'Próximamente: Ahorro',
+      description: 'Establece metas de ahorro, crea fondos de emergencia y haz seguimiento de tu progreso (+). Te ayudaremos a desarrollar hábitos de ahorro saludables y alcanzar tus objetivos financieros.',
+    ),
+    _OnboardingPageData(
+      icon: Icons.credit_card,
+      title: 'Próximamente: Gestión de Deudas',
+      description: 'Organiza tus deudas, tarjetas de crédito y préstamos (+). Crea estrategias de pago, calcula intereses y visualiza tu camino hacia la libertad financiera.',
     ),
     _OnboardingPageData(
       icon: Icons.ondemand_video,
       title: 'Publicidad en la App',
-      description: 'Para mantener la app gratuita, verás un banner en cada seccion y videos publicitarios en la sección de informes.',
+      description: 'Para mantener la app gratuita y seguir mejorándola, verás banners publicitarios en cada sección y videos ocasionales en los informes. Tu apoyo nos permite seguir desarrollando nuevas funciones.',
     ),
     _OnboardingPageData(
       icon: Icons.celebration,
-      title: '¡Comienza a usar Finanz App!',
-      description: 'Ya puedes empezar a registrar tus movimientos y mejorar tu salud financiera. ¡Bienvenido!',
-    ),
-    _OnboardingPageData(
-      icon: Icons.new_releases,
-      title: '¡Nuevas funciones próximamente!',
-      description: 'Si la app tiene buena recepción, se agregarán nuevas funciones y mejoras. ¡Tu opinión es importante!',
+      title: '¡Comienza tu Viaje Financiero!',
+      description: '¡Es hora de tomar el control de tus finanzas! Empieza registrando tus ingresos y gastos fijos del mes, y luego añade tus gastos diarios. ¡Tu futuro financiero comienza hoy!',
     ),
   ];
 
@@ -112,7 +132,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: const [
                                             Text(
-                                              'Esta app utiliza Google AdMob para mostrar anuncios. No recopilamos información personal identificable de los usuarios. Los datos de uso pueden ser compartidos con Google para personalizar la publicidad. Para más información, consulta la política de privacidad de Google y la nuestra en el siguiente enlace:',
+                                              'Esta app respeta tu privacidad:\n\n'
+                                              '• Tus datos financieros se almacenan localmente en tu dispositivo\n'
+                                              '• No recolectamos información personal\n'
+                                              '• No compartimos tus datos con terceros\n'
+                                              '• Puedes exportar/importar tus datos cuando quieras\n\n'
+                                              'La app utiliza Google AdMob para mostrar anuncios. Los datos de uso pueden ser compartidos con Google solo para personalizar la publicidad. Para más información, consulta nuestra política de privacidad completa en:',
                                               style: TextStyle(fontSize: 15),
                                             ),
                                             SizedBox(height: 12),

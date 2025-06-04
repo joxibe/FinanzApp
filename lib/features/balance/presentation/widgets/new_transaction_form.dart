@@ -102,6 +102,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> with SingleTick
           onCancel: () {
             Navigator.of(context).pop();
           },
+          restrictToCurrentMonth: true,
         );
       },
     );
@@ -203,22 +204,35 @@ class _NewTransactionFormState extends State<NewTransactionForm> with SingleTick
           const SizedBox(height: 16),
 
           // Fecha
-          InkWell(
-            onTap: () => _selectDate(context),
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: 'Fecha',
-                prefixIcon: const Icon(Icons.calendar_today),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InkWell(
+                onTap: () => _selectDate(context),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Fecha',
+                    prefixIcon: const Icon(Icons.calendar_today),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                  ),
+                  child: Text(
+                    '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                 ),
-                filled: true,
               ),
-              child: Text(
-                '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                style: Theme.of(context).textTheme.bodyLarge,
+              const SizedBox(height: 8),
+              Text(
+                'Solo se pueden registrar transacciones en el mes actual. Para ver meses anteriores, consulta la sección de Informes > Gastos por categoría > Gastos hormiga.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: 16),
 

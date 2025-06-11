@@ -340,7 +340,7 @@ class BalanceSummaryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Gastos hormiga mensual',
+              'Movimientos hormiga',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),

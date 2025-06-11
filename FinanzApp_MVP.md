@@ -15,66 +15,39 @@ Una app móvil desarrollada en Flutter (Material 3), pensada para ayudar a los u
 - Presupuestos fijos mensuales.
 - Informes básicos (Balance, estadísticas, categoría).
 - Exportación local a Excel.
-- Publicidad: banner fijo + anuncios recompensados para exportar informes.
+- Publicidad: banner fijo + intersticiales.
 - SQLite como base de datos local.
-- Interfaz Material 3 con animaciones suaves.
-- Notificaciones básicas (ahorro, pagos mensuales).
-- Login (Firebase Auth básico, correo y Google).
-
-### Fase 2: Versión Pro (USD 5 mensual)
-- Todo lo anterior +
-- Notificaciones inteligentes.
-- Personalización avanzada de categorías.
-- Widget de ingreso rápido en home (texto o voz).
-- Asistente financiero por IA (chatbot).
-- Análisis avanzado de patrones de gasto.
-- Consejos personalizados.
-- Proyecciones y provisiones automáticas.
-- Notificaciones inteligentes basadas en IA.
-- Herramientas de optimización tributaria (deducciones, tips legales).
-- Integración futura con APIs bancarias (actualización futura).
 
 ---
 
 ## 📱 Pantallas Principales del MVP
 
 ### 1. Balance
-- Tarjeta superior con balance (COP), ingresos y gastos.
+- Tarjeta superior con Saldo dispobible, ingresos, gastos y saldo inicial(el sobrante de Presupuesto).
 - 2 botones: Registrar ingreso / gasto.
   - Formulario: Descripción, monto, categoría (emoticón), auto-fecha.
 - Historial reciente (expandible, ordenado por fecha).
 
 ### 2. Budget (Presupuesto)
+- Tarjeta superios con Saldo disponible para gastos hormiga, ingresos fijos y gastos fijos.
 - Botones ingreso/gasto (fijo).
   - Mismo formulario que Balance.
   - Categorías mensuales (distintas a gastos hormiga).
-- Control y seguimiento de presupuestos mensuales.
+- Control y seguimiento de presupuesto, este se guarda y aparece de forma mensual
 
 ### 3. Reports (Informes)
 - Tarjeta 1: Balance (fijo + hormiga).
 - Tarjeta 2: Estadísticas (expandible)
-  - Día con más gastos.
   - Promedio diario.
-  - Ahorro potencial (regla 50/30/20).
+  - Regla 50%(Necesidades Basicas)/30%(Gastos Personales)/20%(Ahorro e inversion).
+  - Analisis de gasto hormiga.
 - Tarjeta 3: Gastos por categoría (con porcentajes y detalles).
-- Botón de exportar Excel (local o nube si es Pro).
 
 ### 4. Summary (Resumen)
 - Tarjetas mensuales (expandibles):
   - Transacciones por mes.
   - Iconos por categoría.
-  - Solo mes actual es editable.
-  - Edición con restricciones por mes.
-
-### 5. Autenticación / Login
-- Pantalla de bienvenida (Splash + animación de carga con `Rive` o `flare_flutter`).
-- Login por correo y Google.
-- Registro básico con nombre, país, ciudad.
-
-### 6. Chat (Premium/Pro)
-- Chat embebido en la app.
-- Fase Premium: respuestas automáticas.
-- Fase Pro: integración con IA financiera.
+  - Boton exportar
 
 ---
 
@@ -83,20 +56,7 @@ Una app móvil desarrollada en Flutter (Material 3), pensada para ayudar a los u
   - Banner permanente (AdMob).
   - Anuncios recompensados en la pantalla informes - reports.
 - Suscripciones mensuales:
-  - Pro: USD 5/mes
-
-| Funcionalidad                    | Gratuito | Pro |
-|----------------------------------|----------|-----|
-| Registro ingresos/gastos         | ✅       | ✅  |
-| Presupuesto fijo                 | ✅       | ✅  |
-| Informes básicos                 | ✅       | ✅  |
-| Exportar Excel (local)           | ✅       | ✅  |
-| Login + sincronización Firebase  | ✅       | ✅  |
-| Widget de ingreso rápido (voz/texto) | ❌       | ✅  |
-| Chat financiero IA               | ❌       | ✅  |
-| Notificaciones IA avanzadas      | ❌       | ✅  |
-| Optimización tributaria          | ❌       | ✅  |
-| Integración bancaria             | ❌       | 🔜  |
+  - Pro: USD 2.5/mes (revisar despues)
 
 ---
 
@@ -178,16 +138,10 @@ assets/
 
 ## 🔍 IA Financiera (versión Pro)
 - Análisis de patrones de gastos.
-- Reglas básicas (50/30/20, ahorro por porcentaje).
 - Chat tipo WhatsApp que analiza y responde sobre decisiones financieras.
-- Asistente IA con rutinas:
-  - Revisión semanal.
-  - Consejo mensual.
-  - Alertas en tiempo real (gasto elevado, oportunidad de ahorro).
-- Integración con GPT para análisis financiero personalizado.
-
+- IA que permita conocer los impuestos que debe pagar y como optimizarlos. Colombia.
 ---
-
+  
 ## 🎯 Funcionalidades Post-Producción
 
 ### 1. Funcionalidad de Ahorro
@@ -254,76 +208,3 @@ assets/
 - Plan de pruebas con integración continua y testing automatizado.
 
 ---
-
-## ✅ Recomendación General
-Sí, estás siguiendo el camino correcto. Tienes una idea clara, útil, bien definida y con espacio para escalar. Con un MVP funcional, con buena experiencia de usuario y aprovechando Flutter + SQLite, puedes lanzar rápido y empezar a monetizar.
-
-Cuando crees que está listo para implementar la IA o escalar a más países, ya habrás aprendido mucho de tus usuarios reales.
-
-¡Vamos con toda! 💪
-
----
-
-## 📱 Descripción Google Play Console
-
-**Descripción Corta (80 caracteres máximo):**
-```
-Gestiona tus finanzas personales de forma simple y efectiva. ¡Toma el control de tus gastos!
-```
-
-**Descripción Larga:**
-```
-FinanzApp es tu compañero perfecto para tomar el control de tus finanzas personales de manera inteligente y sencilla. Diseñada específicamente para usuarios en Colombia, esta aplicación te ayuda a:
-
-✨ CARACTERÍSTICAS ACTUALES (GRATIS):
-• Registra fácilmente tus ingresos y gastos diarios
-• Visualiza tu balance financiero en tiempo real
-• Establece y controla presupuestos mensuales
-• Analiza tus gastos por categorías con gráficos intuitivos
-• Genera informes detallados de tus finanzas
-• Exporta tus datos a Excel para análisis más profundos
-
-📊 GESTIÓN INTELIGENTE:
-• Interfaz moderna y fácil de usar
-• Categorización intuitiva de gastos
-• Resúmenes mensuales detallados
-• Estadísticas claras y útiles
-• Sistema de presupuestos flexible
-
-💡 BENEFICIOS:
-• Toma mejores decisiones financieras
-• Identifica gastos innecesarios
-• Mejora tus hábitos de ahorro
-• Mantén un registro ordenado de tus finanzas
-• Alcanza tus metas financieras
-
-🔒 SEGURIDAD Y PRIVACIDAD:
-• Datos almacenados localmente en tu dispositivo
-• No requiere conexión constante a internet
-• Sin acceso a tus cuentas bancarias
-• Respaldo local de tu información
-
-🚀 PRÓXIMAMENTE (Basado en feedback de usuarios):
-• Más funcionalidades gratuitas:
-  - Gestión de ahorros
-  - Control de deudas
-  - Nuevas categorías personalizables
-  - Mejoras en la visualización de estadísticas
-
-⭐ VERSIÓN PRO (Próximamente):
-• Widget de ingreso rápido por voz o texto
-• Análisis avanzado de patrones de gasto
-• Asistente financiero con IA
-• Notificaciones inteligentes
-• Consejos personalizados
-• Sin publicidad
-• Y más funciones basadas en tus sugerencias
-
-📈 EVOLUCIÓN CONSTANTE:
-Estamos comprometidos con mejorar tu experiencia. Las actualizaciones y nuevas funcionalidades se basarán en tus comentarios y necesidades. ¡Tu opinión es importante para nosotros!
-
-Comienza hoy a mejorar tu salud financiera con FinanzApp, la aplicación que hace que gestionar tu dinero sea fácil y efectivo.
-
-¡Descarga gratis y da el primer paso hacia una mejor gestión de tus finanzas personales!
-
-Nota: Esta aplicación no requiere acceso a tus cuentas bancarias y toda la información es ingresada manualmente por ti para mayor seguridad.

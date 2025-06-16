@@ -201,9 +201,15 @@ class _SummaryScreenState extends State<SummaryScreen> {
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
-              elevation: 2,
+              elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: isDark 
+                    ? Colors.white.withOpacity(0.1)
+                    : const Color(0xFFE2E8F0).withOpacity(0.5),
+                  width: 1,
+                ),
               ),
               color: isCurrentMonth ? currentMonthColor : cardColor,
               child: Column(

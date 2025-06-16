@@ -35,9 +35,13 @@ class AppTheme {
     scaffoldBackgroundColor: _lightBackground,
     cardTheme: CardTheme(
       color: _lightSurface,
-      elevation: 2,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: const Color(0xFFE2E8F0).withOpacity(0.5),
+          width: 1,
+        ),
       ),
     ),
     appBarTheme: const AppBarTheme(
@@ -56,28 +60,35 @@ class AppTheme {
         backgroundColor: _lightPrimary,
         foregroundColor: Colors.white,
         elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(
+            color: _lightPrimary.withOpacity(0.2),
+            width: 1,
+          ),
         ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: _lightPrimary,
-        side: const BorderSide(color: _lightPrimary),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        side: BorderSide(
+          color: _lightPrimary.withOpacity(0.5),
+          width: 1,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: _lightPrimary,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
     ),
@@ -130,9 +141,13 @@ class AppTheme {
     scaffoldBackgroundColor: _darkBackground,
     cardTheme: CardTheme(
       color: _darkSurface,
-      elevation: 2,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.white.withOpacity(0.1),
+          width: 1,
+        ),
       ),
     ),
     appBarTheme: AppBarTheme(
@@ -151,28 +166,35 @@ class AppTheme {
         backgroundColor: _darkPrimary,
         foregroundColor: Colors.white,
         elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(
+            color: _darkPrimary.withOpacity(0.2),
+            width: 1,
+          ),
         ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: _darkPrimary,
-        side: const BorderSide(color: _darkPrimary),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        side: BorderSide(
+          color: _darkPrimary.withOpacity(0.5),
+          width: 1,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: _darkPrimary,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
     ),

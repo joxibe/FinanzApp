@@ -1267,14 +1267,15 @@ class _BudgetCategoryItem extends StatelessWidget {
                   ],
                 ),
               )),
-          const SizedBox(height: 2),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const SizedBox(height: 4),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Actual: $currentAmount',
                 style: const TextStyle(fontSize: 11),
               ),
+              const SizedBox(height: 2),
               Text(
                 'Recomendado: $recommendedAmount',
                 style: TextStyle(

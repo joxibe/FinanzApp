@@ -338,11 +338,15 @@ class _BalanceScreenState extends State<BalanceScreen> {
                                   ),
                                 ),
                                 style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
                                   side: BorderSide(
                                     color: _selectedTransactionType == AntTransactionType.income
-                                        ? const Color(0xFF48BB78)
-                                        : Theme.of(context).colorScheme.outline,
+                                        ? const Color(0xFF48BB78).withOpacity(0.5)
+                                        : Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                                    width: 1,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                   backgroundColor: _selectedTransactionType == AntTransactionType.income
                                       ? const Color(0xFF48BB78).withOpacity(0.1)
@@ -369,11 +373,15 @@ class _BalanceScreenState extends State<BalanceScreen> {
                                   ),
                                 ),
                                 style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
                                   side: BorderSide(
                                     color: _selectedTransactionType == AntTransactionType.expense
-                                        ? const Color(0xFFED8936)
-                                        : Theme.of(context).colorScheme.outline,
+                                        ? const Color(0xFFED8936).withOpacity(0.5)
+                                        : Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                                    width: 1,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                   backgroundColor: _selectedTransactionType == AntTransactionType.expense
                                       ? const Color(0xFFED8936).withOpacity(0.1)

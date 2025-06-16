@@ -43,7 +43,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _OnboardingPageData(
       icon: Icons.pie_chart,
       title: 'Categorización Inteligente',
-      description: 'Organiza tus gastos en categorías predefinidas siguiendo la regla 50/30/20: 50% para necesidades básicas, 30% para gastos personales y 20% para ahorro e inversión.',
+      description: 'Organiza tus gastos en categorías predefinidas siguiendo la regla 50/30/20: 50% para necesidades básicas, 30% para gastos personales y 20% para ahorro e inversión (próximamente).',
     ),
     _OnboardingPageData(
       icon: Icons.bar_chart,
@@ -73,7 +73,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _OnboardingPageData(
       icon: Icons.celebration,
       title: '¡Comienza tu Viaje Financiero!',
-      description: '¡Es hora de tomar el control de tus finanzas! Empieza registrando tus ingresos y gastos fijos del mes, y luego añade tus gastos diarios. ¡Tu futuro financiero comienza hoy!',
+      description: '¡Es hora de tomar el control de tus finanzas! Empieza registrando tus ingresos y gastos fijos del mes, y luego añade tus gastos diarios. ¡Tu futuro financiero comienza hoy!, iremos añadiendo nuevas funcionalidades en el futuro.',
     ),
   ];
 

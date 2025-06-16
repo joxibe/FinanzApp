@@ -89,6 +89,171 @@ class SettingsScreen extends StatelessWidget {
               ),
             ],
           ),
+
+          const SizedBox(height: 24),
+
+          // Sección de Funciones avanzadas
+          _buildSection(
+            context,
+            'Funciones avanzadas',
+            [
+              ListTile(
+                leading: const Icon(Icons.delete_forever, color: Colors.red),
+                title: const Text('Eliminar transacciones del mes actual', style: TextStyle(color: Colors.red)),
+                subtitle: const Text('Elimina transacciones fijas y/o hormiga del mes actual. Esta acción no se puede deshacer.'),
+                onTap: () async {
+                  int secondsLeft = 10;
+                  bool confirmed = false;
+                  bool deleteFixed = false;
+                  bool deleteAnt = false;
+                  bool timerActive = false;
+                  void resetTimer(StateSetter setState) {
+                    setState(() {
+                      secondsLeft = 10;
+                      timerActive = false;
+                    });
+                  }
+                  await showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) {
+                      return StatefulBuilder(
+                        builder: (context, setState) {
+                          // Iniciar el contador solo si hay alguna opción seleccionada y el timer no está activo
+                          if ((deleteFixed || deleteAnt) && !timerActive) {
+                            timerActive = true;
+                            Future.doWhile(() async {
+                              if (secondsLeft > 0 && (deleteFixed || deleteAnt)) {
+                                await Future.delayed(const Duration(seconds: 1));
+                                setState(() {
+                                  secondsLeft--;
+                                });
+                                return true;
+                              }
+                              return false;
+                            });
+                          }
+                          return AlertDialog(
+                            title: const Text('¿Qué deseas eliminar?', style: TextStyle(color: Colors.red)),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Selecciona qué tipo de transacciones deseas eliminar del mes actual. Esta acción no se puede deshacer.',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 16),
+                                CheckboxListTile(
+                                  value: deleteFixed,
+                                  onChanged: (value) {
+                                    resetTimer(setState);
+                                    setState(() { deleteFixed = value ?? false; });
+                                  },
+                                  title: const Text('Transacciones fijas'),
+                                ),
+                                CheckboxListTile(
+                                  value: deleteAnt,
+                                  onChanged: (value) {
+                                    resetTimer(setState);
+                                    setState(() { deleteAnt = value ?? false; });
+                                  },
+                                  title: const Text('Transacciones hormiga'),
+                                ),
+                                const SizedBox(height: 16),
+                                if (!deleteFixed && !deleteAnt)
+                                  const Text('Debes seleccionar al menos una opción.', style: TextStyle(color: Colors.red)),
+                                if (deleteFixed || deleteAnt)
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.warning, color: Colors.red, size: 20),
+                                      const SizedBox(width: 8),
+                                      Flexible(
+                                        child: Text(
+                                          'Espera $secondsLeft segundos para confirmar',
+                                          style: const TextStyle(color: Colors.red, fontSize: 13),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Cancelar'),
+                              ),
+                              ElevatedButton(
+                                style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                                    if (secondsLeft == 0 && (deleteFixed || deleteAnt)) {
+                                      return Colors.red;
+                                    }
+                                    return Colors.grey;
+                                  }),
+                                  foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                                ),
+                                onPressed: (secondsLeft == 0 && (deleteFixed || deleteAnt))
+                                    ? () async {
+                                        // Última confirmación
+                                        final seguro = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text('¿Estás seguro?', style: TextStyle(color: Colors.red)),
+                                            content: const Text('Esta acción eliminará las transacciones seleccionadas del mes actual y no se puede deshacer. ¿Deseas continuar?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, false),
+                                                child: const Text('Cancelar'),
+                                              ),
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.red,
+                                                  foregroundColor: Colors.white,
+                                                ),
+                                                onPressed: () => Navigator.pop(context, true),
+                                                child: const Text('Sí, eliminar'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                        if (seguro == true) {
+                                          confirmed = true;
+                                          Navigator.pop(context);
+                                        }
+                                      }
+                                    : null,
+                                child: const Text('Eliminar'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  );
+                  if (confirmed) {
+                    final appState = Provider.of<AppState>(context, listen: false);
+                    await appState.deleteCurrentMonthTransactions(deleteFixed: deleteFixed, deleteAnt: deleteAnt);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          deleteFixed && deleteAnt
+                            ? 'Transacciones fijas y hormiga eliminadas.'
+                            : deleteFixed
+                              ? 'Transacciones fijas eliminadas.'
+                              : 'Transacciones hormiga eliminadas.'
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
         ],
       ),
     );

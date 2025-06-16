@@ -422,4 +422,23 @@ class AppState extends ChangeNotifier {
       rethrow;
     }
   }
+
+  // Eliminar todas las transacciones del mes actual (fijas y/o hormiga)
+  Future<void> deleteCurrentMonthTransactions({bool deleteFixed = true, bool deleteAnt = true}) async {
+    if (deleteFixed) {
+      final fixedToDelete = currentMonthFixedTransactions;
+      for (final tx in fixedToDelete) {
+        await _fixedTransactionRepo.deleteTransaction(tx);
+      }
+      await _loadFixedTransactions();
+    }
+    if (deleteAnt) {
+      final antToDelete = currentMonthAntTransactions;
+      for (final tx in antToDelete) {
+        await _antTransactionRepo.deleteTransaction(tx);
+      }
+      await _loadAntTransactions();
+    }
+    notifyListeners();
+  }
 }

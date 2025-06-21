@@ -39,7 +39,8 @@ class _BaseDialog extends StatelessWidget {
     return Dialog(
       child: Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+          minWidth: 300,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

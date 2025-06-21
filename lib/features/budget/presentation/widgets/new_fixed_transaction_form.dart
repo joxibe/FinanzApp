@@ -246,15 +246,16 @@ class _NewFixedTransactionFormState extends State<NewFixedTransactionForm> with 
               children: [
                 DropdownButtonFormField<FixedCategory>(
                   value: _selectedCategory,
-                  decoration: InputDecoration(
-                    labelText: 'Categoría',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                  ),
                   items: FixedCategory.getCategoriesByType(_selectedType).map((category) {
-                    return DropdownMenuItem(
+                    String? regla;
+                    if (['housing', 'main_food', 'main_transport', 'health'].contains(category.id)) {
+                      regla = '50% Necesidades básicas';
+                    } else if (['personal_services', 'financial_obligations', 'other_fixed'].contains(category.id)) {
+                      regla = '30% Gastos personales';
+                    } else if (category.id == 'saving') {
+                      regla = '20% Ahorro (en desarrollo)';
+                    }
+                    return DropdownMenuItem<FixedCategory>(
                       value: category,
                       child: Row(
                         children: [
@@ -265,31 +266,51 @@ class _NewFixedTransactionFormState extends State<NewFixedTransactionForm> with 
                       ),
                     );
                   }).toList(),
-                  onChanged: (FixedCategory? value) {
-                    if (value != null) {
-                      setState(() => _selectedCategory = value);
-                    }
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCategory = value;
+                    });
                   },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Por favor selecciona una categoría';
-                    }
-                    return null;
-                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Categoría',
+                  ),
+                  validator: (value) => value == null ? 'Selecciona una categoría' : null,
                 ),
-                if (_selectedCategory != null) ...[
-                  const SizedBox(height: 8),
+                if (_selectedCategory != null)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      _selectedCategory!.legend,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontStyle: FontStyle.italic,
-                      ),
+                    padding: const EdgeInsets.only(top: 4.0, left: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Builder(
+                          builder: (context) {
+                            String? regla;
+                            if (['housing', 'main_food', 'main_transport', 'health'].contains(_selectedCategory!.id)) {
+                              regla = 'Pertenece a: 50% Necesidades básicas';
+                            } else if (['personal_services', 'financial_obligations', 'other_fixed'].contains(_selectedCategory!.id)) {
+                              regla = 'Pertenece a: 30% Gastos personales';
+                            } else if (_selectedCategory!.id == 'saving') {
+                              regla = 'Pertenece a: 20% Ahorro (en desarrollo)';
+                            }
+                            return regla != null
+                                ? Text(
+                                    regla,
+                                    style: const TextStyle(fontSize: 11, color: Colors.blueGrey),
+                                  )
+                                : const SizedBox.shrink();
+                          },
+                        ),
+                        if (_selectedCategory!.legend.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2.0),
+                            child: Text(
+                              _selectedCategory!.legend,
+                              style: const TextStyle(fontSize: 11, color: Colors.grey),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                ],
               ],
             ),
           ),

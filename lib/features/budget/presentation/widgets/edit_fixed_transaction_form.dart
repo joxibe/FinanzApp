@@ -28,7 +28,7 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
   final _amountFocusNode = FocusNode();
   
   late FixedTransactionType _selectedType;
-  late FixedCategory _selectedCategory;
+  FixedCategory? _selectedCategory;
   late int _selectedDay;
   bool _isLoading = false;
 
@@ -60,7 +60,7 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
       _selectedType = type;
       final categories = FixedCategory.getCategoriesByType(type);
       _selectedCategory = categories.firstWhere(
-        (cat) => cat.id == _selectedCategory.id,
+        (cat) => cat.id == _selectedCategory?.id,
         orElse: () => categories.first,
       );
     });
@@ -99,7 +99,7 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
 
     try {
       final description = _descriptionController.text.trim().isEmpty 
-          ? _selectedCategory.name 
+          ? _selectedCategory?.name 
           : _descriptionController.text;
 
       final cleanAmount = _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
@@ -115,7 +115,7 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
       final updatedTransaction = widget.transaction.copyWith(
         description: description,
         amount: amount,
-        category: _selectedCategory,
+        category: _selectedCategory!,
         date: updatedDate,
         type: _selectedType,
       );
@@ -270,19 +270,9 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 DropdownButtonFormField<FixedCategory>(
-                  value: FixedCategory.getCategoriesByType(_selectedType).firstWhere(
-                    (cat) => cat.id == _selectedCategory.id,
-                    orElse: () => FixedCategory.getCategoriesByType(_selectedType).first,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: 'Categoría',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                  ),
+                  value: _selectedCategory,
                   items: FixedCategory.getCategoriesByType(_selectedType).map((category) {
-                    return DropdownMenuItem(
+                    return DropdownMenuItem<FixedCategory>(
                       value: category,
                       child: Row(
                         children: [
@@ -293,29 +283,51 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
                       ),
                     );
                   }).toList(),
-                  onChanged: (FixedCategory? value) {
-                    if (value != null) {
-                      setState(() => _selectedCategory = value);
-                    }
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCategory = value;
+                    });
                   },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Por favor selecciona una categoría';
-                    }
-                    return null;
-                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Categoría',
+                  ),
+                  validator: (value) => value == null ? 'Selecciona una categoría' : null,
                 ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text(
-                    _selectedCategory.legend,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontStyle: FontStyle.italic,
+                if (_selectedCategory != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0, left: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Builder(
+                          builder: (context) {
+                            String? regla;
+                            if (['housing', 'main_food', 'main_transport', 'health'].contains(_selectedCategory!.id)) {
+                              regla = 'Pertenece a: 50% Necesidades básicas';
+                            } else if (['personal_services', 'financial_obligations', 'other_fixed'].contains(_selectedCategory!.id)) {
+                              regla = 'Pertenece a: 30% Gastos personales';
+                            } else if (_selectedCategory!.id == 'saving') {
+                              regla = 'Pertenece a: 20% Ahorro (en desarrollo)';
+                            }
+                            return regla != null
+                                ? Text(
+                                    regla,
+                                    style: const TextStyle(fontSize: 11, color: Colors.blueGrey),
+                                  )
+                                : const SizedBox.shrink();
+                          },
+                        ),
+                        if (_selectedCategory!.legend.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2.0),
+                            child: Text(
+                              _selectedCategory!.legend,
+                              style: const TextStyle(fontSize: 11, color: Colors.grey),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                ),
               ],
             ),
           ),

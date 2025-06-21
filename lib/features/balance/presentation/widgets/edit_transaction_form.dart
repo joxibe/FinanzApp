@@ -28,7 +28,7 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
   final _amountFocusNode = FocusNode();
   
   late AntTransactionType _selectedType;
-  late AntCategory _selectedCategory;
+  AntCategory? _selectedCategory;
   late DateTime _selectedDate;
   bool _isLoading = false;
 
@@ -60,7 +60,7 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
       _selectedType = type;
       final categories = AntCategory.getCategoriesByType(type);
       _selectedCategory = categories.firstWhere(
-        (cat) => cat.id == _selectedCategory.id,
+        (cat) => cat.id == _selectedCategory?.id,
         orElse: () => categories.first,
       );
     });
@@ -98,7 +98,7 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
 
     try {
       final description = _descriptionController.text.trim().isEmpty 
-          ? _selectedCategory.name 
+          ? _selectedCategory?.name 
           : _descriptionController.text;
 
       final cleanAmount = _amountController.text.replaceAll(RegExp(r'[^\d]'), '');
@@ -107,7 +107,7 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
       final updatedTransaction = widget.transaction.copyWith(
         description: description,
         amount: amount,
-        category: _selectedCategory,
+        category: _selectedCategory!,
         date: _selectedDate,
         type: _selectedType,
       );
@@ -262,19 +262,9 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 DropdownButtonFormField<AntCategory>(
-                  value: AntCategory.getCategoriesByType(_selectedType).firstWhere(
-                    (cat) => cat.id == _selectedCategory.id,
-                    orElse: () => AntCategory.getCategoriesByType(_selectedType).first,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: 'Categoría',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                  ),
+                  value: _selectedCategory,
                   items: AntCategory.getCategoriesByType(_selectedType).map((category) {
-                    return DropdownMenuItem(
+                    return DropdownMenuItem<AntCategory>(
                       value: category,
                       child: Row(
                         children: [
@@ -285,29 +275,35 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
                       ),
                     );
                   }).toList(),
-                  onChanged: (AntCategory? value) {
-                    if (value != null) {
-                      setState(() => _selectedCategory = value);
-                    }
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCategory = value;
+                    });
                   },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Por favor selecciona una categoría';
-                    }
-                    return null;
-                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Categoría',
+                  ),
+                  validator: (value) => value == null ? 'Selecciona una categoría' : null,
                 ),
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Text(
-                    _selectedCategory.legend,
+                    _selectedCategory?.legend ?? '',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
+                if (_selectedCategory != null && _selectedCategory!.type == AntTransactionType.expense)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0, left: 8.0),
+                    child: Text(
+                      'Pertenece a: 30% Gastos personales',
+                      style: const TextStyle(fontSize: 11, color: Colors.blueGrey),
+                    ),
+                  ),
               ],
             ),
           ),

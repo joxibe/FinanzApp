@@ -276,6 +276,14 @@ class _NewTransactionFormState extends State<NewTransactionForm> with SingleTick
                     return null;
                   },
                 ),
+                if (_selectedCategory != null && _selectedCategory!.type == AntTransactionType.expense)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0, left: 8.0),
+                    child: Text(
+                      'Pertenece a: 30% Gastos personales',
+                      style: const TextStyle(fontSize: 11, color: Colors.blueGrey),
+                    ),
+                  ),
                 if (_selectedCategory != null) ...[
                   const SizedBox(height: 8),
                   Padding(

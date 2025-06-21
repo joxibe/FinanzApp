@@ -260,27 +260,6 @@ class _SummaryScreenState extends State<SummaryScreen> {
                               ],
                             ),
                           ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.download,
-                              color: accentColor,
-                              size: 18,
-                            ),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => ExportDialog(
-                                  year: month.year,
-                                  month: month.month,
-                                ),
-                              );
-                            },
-                            tooltip: 'Exportar este mes',
-                            visualDensity: VisualDensity.compact,
-                            constraints: const BoxConstraints(),
-                            splashRadius: 20,
-                            padding: const EdgeInsets.all(8),
-                          ),
                           const SizedBox(width: 4),
                           Icon(
                             _expandedMonths[month] == true
@@ -883,8 +862,6 @@ class _SummaryScreenState extends State<SummaryScreen> {
                   _buildHeader(context),
                   const SizedBox(height: 16),
                   _buildMonthlySummary(context),
-                  const SizedBox(height: 16),
-                  _buildExportButton(context),
                 ],
               ),
             ),
@@ -1035,30 +1012,6 @@ class _SummaryScreenState extends State<SummaryScreen> {
           ],
         );
       },
-    );
-  }
-
-  Widget _buildExportButton(BuildContext context) {
-    return Center(
-      child: FilledButton.icon(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => ExportDialog(
-              year: _selectedYear ?? DateTime.now().year,
-              month: null,
-            ),
-          );
-        },
-        icon: const Icon(Icons.download),
-        label: const Text('Exportar Datos'),
-        style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 16,
-          ),
-        ),
-      ),
     );
   }
 }

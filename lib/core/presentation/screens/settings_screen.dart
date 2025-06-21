@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:finanz_app/core/domain/models/app_state.dart';
 import 'package:finanz_app/core/presentation/screens/onboarding_screen.dart';
+import 'package:finanz_app/core/presentation/widgets/export_dialog.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -250,6 +251,21 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     );
                   }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.download, color: Colors.blue),
+                title: const Text('Exportar datos', style: TextStyle(color: Colors.blue)),
+                subtitle: const Text('Exporta tus datos a CSV o respaldo completo'),
+                onTap: () {
+                  final now = DateTime.now();
+                  showDialog(
+                    context: context,
+                    builder: (context) => ExportDialog(
+                      year: now.year,
+                      month: now.month,
+                    ),
+                  );
                 },
               ),
             ],

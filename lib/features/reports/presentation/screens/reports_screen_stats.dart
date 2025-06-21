@@ -36,6 +36,25 @@ const Map<String, List<String>> _budgetCategories = {
   ],
 };
 
+// Constantes para las categorías principales de la regla 50/30/20
+const Map<String, List<Map<String, String>>> _mainBudgetCategories = {
+  'Necesidades Básicas (50%)': [
+    {'id': 'housing', 'name': 'Vivienda'},
+    {'id': 'main_food', 'name': 'Alimentación'},
+    {'id': 'main_transport', 'name': 'Transporte'},
+    {'id': 'health', 'name': 'Salud'},
+  ],
+  'Gastos Personales (30%)': [
+    {'id': 'personal_services', 'name': 'Servicios personales'},
+    {'id': 'financial_obligations', 'name': 'Obligaciones financieras'},
+    {'id': 'other_fixed', 'name': 'Otros gastos fijos'},
+    {'id': 'hormiga', 'name': 'Gastos hormiga'},
+  ],
+  'Ahorro e Inversión (20%)': [
+    {'id': 'saving', 'name': 'Ahorro e inversión'},
+  ],
+};
+
 String _getMonthName(int month) {
   const months = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -1374,7 +1393,7 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
             _BudgetCategoryItem(
               title: '50% Necesidades Básicas',
               color: Colors.blue,
-              items: _budgetCategories['Necesidades Básicas (50%)']!,
+              items: _mainBudgetCategories['Necesidades Básicas (50%)']!.map((e) => e['name']!).toList(),
               currentAmount: NumberFormatter.formatCurrency(necesidadesBasicas),
               recommendedAmount: NumberFormatter.formatCurrency(necesidadesBasicasRecomendado),
               onInfoTap: () {
@@ -1382,69 +1401,69 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
                   context: context,
                   builder: (context) => _BaseDialog(
                     title: 'Necesidades Básicas (50%)',
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Esta categoría incluye los gastos esenciales para tu vida diaria:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 16),
-                        const _CategoryLegendItem(
-                          icon: Icons.home,
-                          name: 'Vivienda',
-                          description: 'Arriendo, administracion, hipoteca, servicios publicos, internet fijo y mantenimiento',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.restaurant,
-                          name: 'Alimentación',
-                          description: 'Compras de supermercado y comidas esenciales',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.water_drop,
-                          name: 'Servicios básicos',
-                          description: 'Agua, electricidad, gas, internet y telefonía básica',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.directions_bus,
-                          name: 'Transporte',
-                          description: 'Gasolina, transporte público y mantenimiento del vehículo',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.medical_services,
-                          name: 'Salud',
-                          description: 'Medicina prepagada, medicamentos, consultas, exámenes, odontología',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.person,
-                          name: 'Hijos',
-                          description: 'Educación, cuidado, vestimenta, alimentación',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.personal_injury,
-                          name: 'Padres',
-                          description: 'Cuidado, vestimenta, alimentación, regalos',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.pets,
-                          name: 'Mascotas',
-                          description: 'Cuidado, alimentación, veterinaria',
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Esta categoría incluye los gastos esenciales para tu vida diaria:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          child: const Text(
-                            'Consejo: Prioriza estos gastos ya que son esenciales para tu bienestar diario. '
-                            'Busca formas de optimizarlos sin comprometer tu calidad de vida.',
-                            style: TextStyle(fontSize: 13),
+                          const SizedBox(height: 16),
+                          const _CategoryLegendItem(
+                            icon: Icons.home,
+                            name: 'Vivienda',
+                            description: 'Arriendo, administracion, hipoteca, servicios publicos, internet fijo y mantenimiento',
                           ),
-                        ),
-                      ],
+                          const _CategoryLegendItem(
+                            icon: Icons.restaurant,
+                            name: 'Alimentación',
+                            description: 'Compras de supermercado y comidas esenciales',
+                          ),
+                          const _CategoryLegendItem(
+                            icon: Icons.water_drop,
+                            name: 'Servicios básicos',
+                            description: 'Agua, electricidad, gas, internet y telefonía básica',
+                          ),
+                          const _CategoryLegendItem(
+                            icon: Icons.directions_bus,
+                            name: 'Transporte',
+                            description: 'Gasolina, transporte público y mantenimiento del vehículo',
+                          ),
+                          const _CategoryLegendItem(
+                            icon: Icons.medical_services,
+                            name: 'Salud',
+                            description: 'Medicina prepagada, medicamentos, consultas, exámenes, odontología',
+                          ),
+                          const _CategoryLegendItem(
+                            icon: Icons.child_care,
+                            name: 'Hijos',
+                            description: 'Educación, cuidado, vestimenta, alimentación',
+                          ),
+                          const _CategoryLegendItem(
+                            icon: Icons.elderly,
+                            name: 'Padres',
+                            description: 'Cuidado, vestimenta, alimentación, regalos',
+                          ),
+                          const _CategoryLegendItem(
+                            icon: Icons.pets,
+                            name: 'Mascotas',
+                            description: 'Cuidado, alimentación, veterinaria',
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Consejo: Prioriza estos gastos ya que son esenciales para tu bienestar diario. Busca formas de optimizarlos sin comprometer tu calidad de vida.',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -1454,7 +1473,7 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
             _BudgetCategoryItem(
               title: '30% Gastos Personales',
               color: Colors.orange,
-              items: _budgetCategories['Gastos Personales (30%)']!,
+              items: _mainBudgetCategories['Gastos Personales (30%)']!.map((e) => e['name']!).toList(),
               currentAmount: NumberFormatter.formatCurrency(gastosPersonales),
               recommendedAmount: NumberFormatter.formatCurrency(gastosPersonalesRecomendado),
               onInfoTap: () {
@@ -1462,49 +1481,49 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
                   context: context,
                   builder: (context) => _BaseDialog(
                     title: 'Gastos Personales (30%)',
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Esta categoría incluye gastos que mejoran tu calidad de vida y gastos hormiga:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 16),
-                        const _CategoryLegendItem(
-                          icon: Icons.person,
-                          name: 'Servicios Personales',
-                          description: 'Gimnasio, suscripciones, belleza, educación',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.credit_card,
-                          name: 'Obligaciones Financieras',
-                          description: 'Tarjetas de crédito, créditos personales',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.more_horiz,
-                          name: 'Otros Gastos Fijos',
-                          description: 'Gastos personales fijos varios',
-                        ),
-                        const SizedBox(height: 16),
-                        const _CategoryLegendItem(
-                          icon: Icons.local_cafe,
-                          name: 'Gastos Hormiga',
-                          description: 'Cafés, snacks, comidas fuera, transporte ocasional, compras pequeñas',
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Esta categoría incluye gastos que mejoran tu calidad de vida y gastos hormiga:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          child: const Text(
-                            'Consejo: Estos gastos son importantes para tu calidad de vida y bienestar emocional, pero mantén un balance. En ocasiones prioriza lo que realmente te hace feliz.',
-                            style: TextStyle(fontSize: 13),
+                          const SizedBox(height: 16),
+                          const _CategoryLegendItem(
+                            icon: Icons.person,
+                            name: 'Servicios Personales',
+                            description: 'Gimnasio, suscripciones, belleza, educación',
                           ),
-                        ),
-                      ],
+                          const _CategoryLegendItem(
+                            icon: Icons.credit_card,
+                            name: 'Obligaciones Financieras',
+                            description: 'Tarjetas de crédito, créditos personales',
+                          ),
+                          const _CategoryLegendItem(
+                            icon: Icons.more_horiz,
+                            name: 'Otros Gastos Fijos',
+                            description: 'Gastos personales fijos varios',
+                          ),
+                          const _CategoryLegendItem(
+                            icon: Icons.local_cafe,
+                            name: 'Gastos Hormiga',
+                            description: 'Cafés, snacks, comidas fuera, transporte ocasional, compras pequeñas',
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Consejo: Estos gastos son importantes para tu calidad de vida y bienestar emocional, pero mantén un balance. En ocasiones prioriza lo que realmente te hace feliz.',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -1514,7 +1533,7 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
             _BudgetCategoryItem(
               title: '20% Ahorro e Inversión',
               color: Colors.green,
-              items: _budgetCategories['Ahorro e Inversión (20%)']!,
+              items: _mainBudgetCategories['Ahorro e Inversión (20%)']!.map((e) => e['name']!).toList(),
               currentAmount: NumberFormatter.formatCurrency(ahorroInversion),
               recommendedAmount: NumberFormatter.formatCurrency(ahorroInversionRecomendado),
               onInfoTap: () {
@@ -1522,50 +1541,9 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
                   context: context,
                   builder: (context) => _BaseDialog(
                     title: 'Ahorro e Inversión (20%)',
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Esta categoría es crucial para tu seguridad financiera futura:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 16),
-                        const _CategoryLegendItem(
-                          icon: Icons.savings,
-                          name: 'Fondo de emergencia',
-                          description: 'Ahorro para imprevistos (3-6 meses de gastos)',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.trending_up,
-                          name: 'Ahorro a largo plazo',
-                          description: 'Metas financieras futuras y jubilación',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.account_balance,
-                          name: 'Inversiones',
-                          description: 'Inversiones en bolsa, fondos o bienes raíces',
-                        ),
-                        const _CategoryLegendItem(
-                          icon: Icons.credit_card,
-                          name: 'Deudas',
-                          description: 'Pago de deudas de alto interés',
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'Consejo: Esta categoría es fundamental para tu futuro financiero. '
-                            'Mantén la disciplina de ahorrar regularmente, incluso en meses difíciles. '
-                            'Esta funcionalidad está en desarrollo, por lo que no es 100% precisa.',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                        ),
-                      ],
+                    content: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text('Esta sección está en desarrollo. Pronto podrás registrar y analizar tus ahorros e inversiones aquí.', style: TextStyle(fontSize: 15)),
                     ),
                   ),
                 );

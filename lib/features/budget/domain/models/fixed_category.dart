@@ -63,15 +63,15 @@ class FixedCategory {
     ),
     FixedCategory(
       id: 'main_food',
-      name: 'Alimentación Principal',
+      name: 'Alimentación',
       legend: 'Mercado mensual, carnicería, frutas y verduras, productos de aseo, despensa',
       iconName: 'restaurant',
       color: Colors.orange,
       type: FixedTransactionType.expense,
-    ),
+    ), 
     FixedCategory(
       id: 'main_transport',
-      name: 'Transporte Principal',
+      name: 'Transporte',
       legend: 'Cuota vehículo, seguro, mantenimiento, SOAT, impuestos vehiculares',
       iconName: 'directions_car',
       color: Colors.purple,

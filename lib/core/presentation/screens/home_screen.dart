@@ -20,6 +20,7 @@ class AdHelper {
   // IDs de prueba
   static String get bannerAdUnitId => 'ca-app-pub-3940256099942544/6300978111';
   static String get interstitialAdUnitId => 'ca-app-pub-3940256099942544/1033173712';
+
 }
 
 class HomeScreen extends StatefulWidget {

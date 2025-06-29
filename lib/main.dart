@@ -7,9 +7,18 @@ import 'package:finanz_app/core/data/database/database_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/presentation/screens/onboarding_screen.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark, // O Brightness.light según tu tema
+      statusBarIconBrightness: Brightness.dark, // O Brightness.light según tu tema
+    ),
+  );
 
   // Inicializar AdMob
   await MobileAds.instance.initialize();

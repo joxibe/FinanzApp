@@ -30,7 +30,7 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -71,6 +71,7 @@ class DatabaseService {
         type TEXT NOT NULL,
         category_id TEXT NOT NULL,
         dayOfMonth INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT "pendiente",
         FOREIGN KEY (category_id) REFERENCES fixed_categories (id)
           ON DELETE CASCADE
       )
@@ -101,6 +102,9 @@ class DatabaseService {
       await db.execute('ALTER TABLE fixed_categories ADD COLUMN type TEXT NOT NULL DEFAULT "expense"');
       await db.execute('ALTER TABLE ant_categories ADD COLUMN legend TEXT NOT NULL DEFAULT "Sin descripción"');
       await db.execute('ALTER TABLE fixed_transactions ADD COLUMN dayOfMonth INTEGER NOT NULL DEFAULT 1');
+    }
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE fixed_transactions ADD COLUMN status TEXT NOT NULL DEFAULT "pendiente"');
     }
   }
 

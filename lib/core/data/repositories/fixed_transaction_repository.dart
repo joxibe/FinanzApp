@@ -41,6 +41,12 @@ class FixedTransactionRepository {
           category: category,
           type: map['type'] == 'expense' ? FixedTransactionType.expense : FixedTransactionType.income,
           dayOfMonth: map['dayOfMonth'] as int,
+          status: map['status'] != null
+              ? FixedTransactionStatus.values.firstWhere(
+                  (e) => e.toString().split('.').last == map['status'],
+                  orElse: () => FixedTransactionStatus.pendiente,
+                )
+              : FixedTransactionStatus.pendiente,
         ));
       }
     }
@@ -57,6 +63,7 @@ class FixedTransactionRepository {
       'type': transaction.type.toString().split('.').last,
       'category_id': transaction.category.id,
       'dayOfMonth': transaction.dayOfMonth,
+      'status': transaction.status.toString().split('.').last,
     });
   }
 
@@ -70,6 +77,7 @@ class FixedTransactionRepository {
         'type': transaction.type.toString().split('.').last,
         'category_id': transaction.category.id,
         'dayOfMonth': transaction.dayOfMonth,
+        'status': transaction.status.toString().split('.').last,
       },
       where: 'id = ?',
       whereArgs: [transaction.id],
@@ -126,6 +134,12 @@ class FixedTransactionRepository {
           category: category,
           type: map['type'] == 'expense' ? FixedTransactionType.expense : FixedTransactionType.income,
           dayOfMonth: map['dayOfMonth'] as int,
+          status: map['status'] != null
+              ? FixedTransactionStatus.values.firstWhere(
+                  (e) => e.toString().split('.').last == map['status'],
+                  orElse: () => FixedTransactionStatus.pendiente,
+                )
+              : FixedTransactionStatus.pendiente,
         ));
       }
     }

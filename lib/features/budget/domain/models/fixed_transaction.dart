@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'fixed_category.dart';
 import 'package:finanz_app/core/utils/icon_helper.dart';
 
+/// Estado de la transacción fija
+enum FixedTransactionStatus { pendiente, pagado }
+
 /// Modelo que representa una transacción fija (gasto o ingreso)
 class FixedTransaction {
   final String id;
@@ -12,6 +15,7 @@ class FixedTransaction {
   final FixedCategory category;
   final FixedTransactionType type;
   final int dayOfMonth;
+  final FixedTransactionStatus status;
 
   const FixedTransaction({
     required this.id,
@@ -21,6 +25,7 @@ class FixedTransaction {
     required this.category,
     required this.type,
     required this.dayOfMonth,
+    this.status = FixedTransactionStatus.pendiente,
   });
 
   /// Factory constructor para crear una nueva transacción fija
@@ -30,6 +35,7 @@ class FixedTransaction {
     required FixedCategory category,
     required int dayOfMonth,
     required FixedTransactionType type,
+    FixedTransactionStatus status = FixedTransactionStatus.pendiente,
   }) {
     final now = DateTime.now();
     final date = DateTime(now.year, now.month, dayOfMonth);
@@ -42,6 +48,7 @@ class FixedTransaction {
       category: category,
       type: type,
       dayOfMonth: dayOfMonth,
+      status: status,
     );
   }
 
@@ -54,6 +61,7 @@ class FixedTransaction {
     FixedCategory? category,
     FixedTransactionType? type,
     int? dayOfMonth,
+    FixedTransactionStatus? status,
   }) {
     return FixedTransaction(
       id: id ?? this.id,
@@ -63,6 +71,7 @@ class FixedTransaction {
       category: category ?? this.category,
       type: type ?? this.type,
       dayOfMonth: dayOfMonth ?? this.dayOfMonth,
+      status: status ?? this.status,
     );
   }
 
@@ -76,6 +85,7 @@ class FixedTransaction {
       'categoryId': category.id,
       'type': type.toString(),
       'dayOfMonth': dayOfMonth,
+      'status': status.toString().split('.').last,
     };
   }
   
@@ -94,17 +104,22 @@ class FixedTransaction {
         'color': category.color.value,
       },
       'type': type == FixedTransactionType.income ? 'income' : 'expense',
+      'status': status.toString().split('.').last,
     };
   }
 
   /// Crear una transacción desde un mapa
   factory FixedTransaction.fromMap(Map<String, dynamic> map) {
-    final categoryId = map['category_id'] as String;
+    final categoryId = map['category_id'] as String? ?? map['categoryId'] as String;
     final category = FixedCategory.allCategories.firstWhere(
       (c) => c.id == categoryId,
       orElse: () => FixedCategory.expenseCategories.last,
     );
-
+    final statusString = map['status'] as String? ?? 'pendiente';
+    final status = FixedTransactionStatus.values.firstWhere(
+      (e) => e.toString().split('.').last == statusString,
+      orElse: () => FixedTransactionStatus.pendiente,
+    );
     return FixedTransaction(
       id: map['id'] as String,
       description: map['description'] as String,
@@ -115,6 +130,7 @@ class FixedTransaction {
         (e) => e.toString() == map['type'],
       ),
       dayOfMonth: map['dayOfMonth'] as int,
+      status: status,
     );
   }
 
@@ -127,6 +143,7 @@ class FixedTransaction {
       date: DateTime.now(),
       type: FixedTransactionType.expense,
       dayOfMonth: DateTime.now().day,
+      status: FixedTransactionStatus.pendiente,
     );
   }
 
@@ -141,7 +158,11 @@ class FixedTransaction {
       color: Color(categoryJson['color'] as int),
       type: categoryJson['type'] == 'income' ? FixedTransactionType.income : FixedTransactionType.expense,
     );
-
+    final statusString = json['status'] as String? ?? 'pendiente';
+    final status = FixedTransactionStatus.values.firstWhere(
+      (e) => e.toString().split('.').last == statusString,
+      orElse: () => FixedTransactionStatus.pendiente,
+    );
     return FixedTransaction(
       id: json['id'] as String,
       description: json['description'] as String,
@@ -150,11 +171,12 @@ class FixedTransaction {
       category: category,
       type: json['type'] == 'income' ? FixedTransactionType.income : FixedTransactionType.expense,
       dayOfMonth: json['dayOfMonth'] as int,
+      status: status,
     );
   }
 
   @override
   String toString() {
-    return 'FixedTransaction(id: $id, description: $description, amount: $amount, date: $date, category: ${category.name}, type: $type)';
+    return 'FixedTransaction(id: $id, description: $description, amount: $amount, date: $date, category: ${category.name}, type: $type, status: $status)';
   }
 } 

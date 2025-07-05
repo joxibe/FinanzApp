@@ -30,6 +30,7 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
   late FixedTransactionType _selectedType;
   FixedCategory? _selectedCategory;
   late int _selectedDay;
+  late FixedTransactionStatus _selectedStatus;
   bool _isLoading = false;
 
   @override
@@ -44,6 +45,7 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
       orElse: () => categories.first,
     );
     _selectedDay = widget.transaction.date.day;
+    _selectedStatus = widget.transaction.status;
   }
 
   @override
@@ -118,6 +120,7 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
         category: _selectedCategory!,
         date: updatedDate,
         type: _selectedType,
+        status: _selectedStatus,
       );
 
       // Llamar a onSave y esperar a que termine
@@ -329,6 +332,26 @@ class _EditFixedTransactionFormState extends State<EditFixedTransactionForm> {
                     ),
                   ),
               ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Estado
+          DropdownButtonFormField<FixedTransactionStatus>(
+            value: _selectedStatus,
+            items: FixedTransactionStatus.values.map((status) {
+              return DropdownMenuItem<FixedTransactionStatus>(
+                value: status,
+                child: Text(status == FixedTransactionStatus.pendiente ? 'Pendiente' : 'Pagado'),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedStatus = value!;
+              });
+            },
+            decoration: const InputDecoration(
+              labelText: 'Estado',
             ),
           ),
           const SizedBox(height: 24),

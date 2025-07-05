@@ -34,6 +34,7 @@ class _NewFixedTransactionFormState extends State<NewFixedTransactionForm> with 
   FixedTransactionType _selectedType = FixedTransactionType.expense;
   FixedCategory? _selectedCategory;
   DateTime _selectedDate = DateTime.now();
+  FixedTransactionStatus _selectedStatus = FixedTransactionStatus.pendiente;
   bool _isLoading = false;
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
@@ -142,9 +143,10 @@ class _NewFixedTransactionFormState extends State<NewFixedTransactionForm> with 
           category: _selectedCategory!,
           dayOfMonth: _selectedDate.day,
           type: _selectedType,
+          status: _selectedStatus,
         );
 
-        widget.onSave(transaction);
+        await widget.onSave(transaction);
         await _animationController.reverse();
         
         _descriptionController.clear();
@@ -152,6 +154,7 @@ class _NewFixedTransactionFormState extends State<NewFixedTransactionForm> with 
         setState(() {
           _selectedDate = DateTime.now();
           _selectedCategory = FixedCategory.getCategoriesByType(_selectedType).first;
+          _selectedStatus = FixedTransactionStatus.pendiente;
         });
 
         widget.onCancel?.call();
@@ -312,6 +315,26 @@ class _NewFixedTransactionFormState extends State<NewFixedTransactionForm> with 
                     ),
                   ),
               ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Estado
+          DropdownButtonFormField<FixedTransactionStatus>(
+            value: _selectedStatus,
+            items: FixedTransactionStatus.values.map((status) {
+              return DropdownMenuItem<FixedTransactionStatus>(
+                value: status,
+                child: Text(status == FixedTransactionStatus.pendiente ? 'Pendiente' : 'Pagado'),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedStatus = value!;
+              });
+            },
+            decoration: const InputDecoration(
+              labelText: 'Estado',
             ),
           ),
           const SizedBox(height: 24),

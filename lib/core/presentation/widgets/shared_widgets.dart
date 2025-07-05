@@ -232,12 +232,28 @@ class FixedTransactionItem extends StatelessWidget {
                 ),
               ),
               // Monto
-              Text(
-                NumberFormatter.formatCurrency(transaction.amount),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    NumberFormatter.formatCurrency(transaction.amount),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    transaction.status == FixedTransactionStatus.pendiente ? 'Pendiente' : 'Pagado',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: transaction.status == FixedTransactionStatus.pendiente
+                          ? Colors.orange
+                          : Colors.green,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ),
               // Botones de acción
               if (onEdit != null || onDelete != null) ...[

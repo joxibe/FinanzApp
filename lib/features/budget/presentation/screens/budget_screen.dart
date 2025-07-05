@@ -48,15 +48,17 @@ class _BudgetScreenState extends State<BudgetScreen> {
               padding: const EdgeInsets.all(16.0),
               child: EditFixedTransactionForm(
                 transaction: transaction,
-                onSave: (updatedTransaction) {
-                  context.read<AppState>().updateFixedTransaction(updatedTransaction);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Transacción fija actualizada con éxito'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
+                onSave: (updatedTransaction) async {
+                  await context.read<AppState>().updateFixedTransaction(updatedTransaction);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Transacción fija actualizada con éxito'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
                 },
               ),
             ),
@@ -249,24 +251,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
                     : null,
               ),
             ),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              side: BorderSide(
-                color: _selectedTransactionType == FixedTransactionType.income
-                    ? const Color(0xFF48BB78).withOpacity(0.5)
-                    : Theme.of(context).colorScheme.outline.withOpacity(0.5),
-                width: 1,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              backgroundColor: _selectedTransactionType == FixedTransactionType.income
-                  ? const Color(0xFF48BB78).withOpacity(0.1)
-                  : null,
-            ),
           ),
         ),
-        const SizedBox(width: 8),
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () => _toggleForm(FixedTransactionType.expense),
@@ -284,24 +270,37 @@ class _BudgetScreenState extends State<BudgetScreen> {
                     : null,
               ),
             ),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              side: BorderSide(
-                color: _selectedTransactionType == FixedTransactionType.expense
-                    ? const Color(0xFFED8936).withOpacity(0.5)
-                    : Theme.of(context).colorScheme.outline.withOpacity(0.5),
-                width: 1,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              backgroundColor: _selectedTransactionType == FixedTransactionType.expense
-                  ? const Color(0xFFED8936).withOpacity(0.1)
-                  : null,
-            ),
           ),
         ),
       ],
+    );
+  }
+
+  void _showNewFixedTransactionForm(BuildContext context, FixedTransactionType type) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: NewFixedTransactionForm(
+          initialType: type,
+          onSave: (transaction) async {
+            await context.read<AppState>().addFixedTransaction(transaction);
+            if (context.mounted) {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Transacción fija guardada con éxito'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          },
+          onCancel: () => Navigator.pop(context),
+        ),
+      ),
     );
   }
 

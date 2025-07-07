@@ -569,93 +569,22 @@ class _BalanceCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      isAnnualView ? 'Balance Anual' : 'Balance Mensual',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    if (isAnnualView)
-                      Text(
-                        'Promedio mensual',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                  ],
-                ),
+                _buildHeader(context, isAnnualView),
                 const SizedBox(height: 16),
-                // Balance general
-                Center(
-                  child: Column(
-                    children: [
-                      Text(
-                        NumberFormatter.formatCurrency(balance),
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              color: balance >= 0 ? Colors.green : Colors.red,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        isAnnualView ? 'Balance Anual' : 'Balance Mensual',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                      if (isAnnualView) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          NumberFormatter.formatCurrency(monthlyBalance),
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: monthlyBalance >= 0 ? Colors.green : Colors.red,
-                                fontWeight: FontWeight.w500,
-                              ),
-                        ),
-                        Text(
-                          'Promedio mensual',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
+                _buildBalanceGeneral(context, balance, monthlyBalance, isAnnualView),
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 12),
-                // Desglose de ingresos y gastos
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _BalanceItem(
-                      title: isAnnualView ? 'Ingresos Anuales' : 'Ingresos Totales',
-                      amount: NumberFormatter.formatCurrency(totalIncome),
-                      icon: Icons.arrow_upward,
-                      color: Colors.green,
-                      subtitle: [
-                        'Fijos: ${NumberFormatter.formatCurrency(totalFixedIncome)}',
-                        'Hormiga: ${NumberFormatter.formatCurrency(totalAntIncome)}',
-                        if (isAnnualView)
-                          'Promedio mensual: ${NumberFormatter.formatCurrency(monthlyIncome)}',
-                      ],
-                    ),
-                    _BalanceItem(
-                      title: isAnnualView ? 'Gastos Anuales' : 'Gastos Totales',
-                      amount: NumberFormatter.formatCurrency(totalExpenses),
-                      icon: Icons.arrow_downward,
-                      color: Colors.red,
-                      subtitle: [
-                        'Fijos: ${NumberFormatter.formatCurrency(totalFixedExpenses)}',
-                        'Hormiga: ${NumberFormatter.formatCurrency(totalAntExpenses)}',
-                        if (isAnnualView)
-                          'Promedio mensual: ${NumberFormatter.formatCurrency(monthlyExpenses)}',
-                      ],
-                    ),
-                  ],
+                _BalanceBreakdownRow(
+                  isAnnualView: isAnnualView,
+                  totalIncome: totalIncome,
+                  totalExpenses: totalExpenses,
+                  totalFixedIncome: totalFixedIncome,
+                  totalAntIncome: totalAntIncome,
+                  totalFixedExpenses: totalFixedExpenses,
+                  totalAntExpenses: totalAntExpenses,
+                  monthlyIncome: monthlyIncome,
+                  monthlyExpenses: monthlyExpenses,
                 ),
               ],
             ),
@@ -663,6 +592,165 @@ class _BalanceCard extends StatelessWidget {
         );
       },
     );
+  }
+
+  // Encabezado de la tarjeta
+  Widget _buildHeader(BuildContext context, bool isAnnualView) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          isAnnualView ? 'Balance Anual' : 'Balance Mensual',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        if (isAnnualView)
+          Text(
+            'Promedio mensual',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+      ],
+    );
+  }
+
+  // Balance general (total y promedio)
+  Widget _buildBalanceGeneral(BuildContext context, double balance, double monthlyBalance, bool isAnnualView) {
+    return Center(
+      child: Column(
+        children: [
+          Text(
+            NumberFormatter.formatCurrency(balance),
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: balance >= 0 ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            isAnnualView ? 'Balance Anual' : 'Balance Mensual',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          if (isAnnualView) ...[
+            const SizedBox(height: 8),
+            Text(
+              NumberFormatter.formatCurrency(monthlyBalance),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: monthlyBalance >= 0 ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+            Text(
+              'Promedio mensual',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Widget para mostrar el desglose de ingresos y gastos, adaptado a la vista anual o mensual
+class _BalanceBreakdownRow extends StatelessWidget {
+  final bool isAnnualView;
+  final double totalIncome;
+  final double totalExpenses;
+  final double totalFixedIncome;
+  final double totalAntIncome;
+  final double totalFixedExpenses;
+  final double totalAntExpenses;
+  final double monthlyIncome;
+  final double monthlyExpenses;
+
+  const _BalanceBreakdownRow({
+    required this.isAnnualView,
+    required this.totalIncome,
+    required this.totalExpenses,
+    required this.totalFixedIncome,
+    required this.totalAntIncome,
+    required this.totalFixedExpenses,
+    required this.totalAntExpenses,
+    required this.monthlyIncome,
+    required this.monthlyExpenses,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isAnnualView) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Flexible(
+            child: _BalanceItem(
+              title: 'Ingresos Anuales',
+              amount: NumberFormatter.formatCurrency(totalIncome),
+              icon: Icons.arrow_upward,
+              color: Colors.green,
+              subtitle: [
+                'Fijos: ${NumberFormatter.formatCurrency(totalFixedIncome)}',
+                'Hormiga: ${NumberFormatter.formatCurrency(totalAntIncome)}',
+              ],
+              centerContent: true,
+              extraValue: NumberFormatter.formatCurrency(monthlyIncome),
+              extraLabel: 'Promedio mensual',
+            ),
+          ),
+          const SizedBox(width: 16),
+          Flexible(
+            child: _BalanceItem(
+              title: 'Gastos Anuales',
+              amount: NumberFormatter.formatCurrency(totalExpenses),
+              icon: Icons.arrow_downward,
+              color: Colors.red,
+              subtitle: [
+                'Fijos: ${NumberFormatter.formatCurrency(totalFixedExpenses)}',
+                'Hormiga: ${NumberFormatter.formatCurrency(totalAntExpenses)}',
+              ],
+              centerContent: true,
+              extraValue: NumberFormatter.formatCurrency(monthlyExpenses),
+              extraLabel: 'Promedio mensual',
+            ),
+          ),
+        ],
+      );
+    } else {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            child: _BalanceItem(
+              title: 'Ingresos Totales',
+              amount: NumberFormatter.formatCurrency(totalIncome),
+              icon: Icons.arrow_upward,
+              color: Colors.green,
+              subtitle: [
+                'Fijos: ${NumberFormatter.formatCurrency(totalFixedIncome)}',
+                'Hormiga: ${NumberFormatter.formatCurrency(totalAntIncome)}',
+              ],
+            ),
+          ),
+          Expanded(
+            child: _BalanceItem(
+              title: 'Gastos Totales',
+              amount: NumberFormatter.formatCurrency(totalExpenses),
+              icon: Icons.arrow_downward,
+              color: Colors.red,
+              subtitle: [
+                'Fijos: ${NumberFormatter.formatCurrency(totalFixedExpenses)}',
+                'Hormiga: ${NumberFormatter.formatCurrency(totalAntExpenses)}',
+              ],
+            ),
+          ),
+        ],
+      );
+    }
   }
 }
 
@@ -672,6 +760,9 @@ class _BalanceItem extends StatelessWidget {
   final IconData icon;
   final Color color;
   final List<String> subtitle;
+  final bool centerContent;
+  final String? extraValue;
+  final String? extraLabel;
 
   const _BalanceItem({
     required this.title,
@@ -679,17 +770,26 @@ class _BalanceItem extends StatelessWidget {
     required this.icon,
     required this.color,
     this.subtitle = const [],
+    this.centerContent = false,
+    this.extraValue,
+    this.extraLabel,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisAlignment: centerContent ? MainAxisAlignment.center : MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Icon(icon, color: color),
         const SizedBox(height: 8),
         Text(
           title,
           style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+          softWrap: true,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 2,
         ),
         const SizedBox(height: 4),
         Text(
@@ -698,7 +798,35 @@ class _BalanceItem extends StatelessWidget {
                 color: color,
                 fontWeight: FontWeight.bold,
               ),
+          textAlign: TextAlign.center,
+          softWrap: true,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 2,
         ),
+        if (extraValue != null && extraLabel != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            extraValue!,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w500,
+                ),
+            textAlign: TextAlign.center,
+            softWrap: true,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+          Text(
+            extraLabel!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+            textAlign: TextAlign.center,
+            softWrap: true,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+        ],
         if (subtitle.isNotEmpty) ...[
           const SizedBox(height: 4),
           ...subtitle.map((text) => Text(
@@ -706,6 +834,10 @@ class _BalanceItem extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
+                textAlign: TextAlign.center,
+                softWrap: true,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
               )),
         ],
       ],

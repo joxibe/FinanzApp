@@ -48,7 +48,15 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            applicationIdSuffix = ".debug"
+            isDebuggable = true
+            manifestPlaceholders["adMobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+            signingConfig = signingConfigs.getByName("debug")
+        }
         getByName("release") {
+            isDebuggable = false
+            manifestPlaceholders["adMobAppId"] = "ca-app-pub-7539659588201107~8066348777"
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true

@@ -7,7 +7,7 @@
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-7539659588201107~8066348777"/> 
+            android:value="${adMobAppId}"/>
 
         <activity
             android:name=".MainActivity"

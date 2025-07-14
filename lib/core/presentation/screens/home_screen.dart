@@ -11,16 +11,42 @@ import 'package:finanz_app/core/presentation/screens/onboarding_screen.dart';
 import 'package:finanz_app/core/presentation/screens/settings_screen.dart';
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 
 class AdHelper {
-  // IDs de producción de AdMob
-  //static String get bannerAdUnitId => 'ca-app-pub-7539659588201107/3038959785';
-  //static String get interstitialAdUnitId => 'ca-app-pub-7539659588201107/7483818860';
+  // Detectar automáticamente si es debug o release
+  static String get bannerAdUnitId {
+    if (kDebugMode) {
+      return 'ca-app-pub-3940256099942544/6300978111'; // Test
+    } else {
+      return 'ca-app-pub-7539659588201107/3038959785'; // Production
+    }
+  }
 
-  // IDs de prueba
-  static String get bannerAdUnitId => 'ca-app-pub-3940256099942544/6300978111';
-  static String get interstitialAdUnitId => 'ca-app-pub-3940256099942544/1033173712';
+  static String get interstitialAdUnitId {
+    if (kDebugMode) {
+      return 'ca-app-pub-3940256099942544/1033173712'; // Test
+    } else {
+      return 'ca-app-pub-7539659588201107/7483818860'; // Production
+    }
+  }
 
+  // Configuración automática
+  static RequestConfiguration getRequestConfiguration() {
+    if (kDebugMode) {
+      return RequestConfiguration(
+        tagForChildDirectedTreatment: TagForChildDirectedTreatment.unspecified,
+        testDeviceIds: ['YOUR_TEST_DEVICE_ID'], // Agrega tu device ID aquí
+        maxAdContentRating: MaxAdContentRating.g,
+      );
+    } else {
+      return RequestConfiguration(
+        tagForChildDirectedTreatment: TagForChildDirectedTreatment.unspecified,
+        testDeviceIds: [], // Vacío para producción
+        maxAdContentRating: MaxAdContentRating.g,
+      );
+    }
+  }
 }
 
 class HomeScreen extends StatefulWidget {
@@ -52,13 +78,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pageController = PageController(initialPage: 0);
     
-    // Configuración de anuncios para producción
-    MobileAds.instance.updateRequestConfiguration(
-      RequestConfiguration(
-        tagForChildDirectedTreatment: TagForChildDirectedTreatment.unspecified,
-        testDeviceIds: [],
-      ),
-    );
+    // Mostrar en logs qué modo estás usando
+    if (kDebugMode) {
+      debugPrint('🔧 MODO DEBUG: Usando anuncios de prueba');
+    } else {
+      debugPrint('🚀 MODO RELEASE: Usando anuncios de producción');
+    }
     
     // Primer intento de carga de anuncios con delay
     Future.delayed(const Duration(seconds: 2), () {
@@ -91,6 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
         size: AdSize.banner,
         listener: BannerAdListener(
           onAdLoaded: (ad) {
+            debugPrint('✅ Banner cargado - Modo: ${kDebugMode ? "DEBUG" : "RELEASE"}');
             if (mounted) {
               setState(() {
                 _isBannerAdReady = true;
@@ -100,6 +126,12 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           onAdFailedToLoad: (ad, error) {
             debugPrint('Banner ad failed to load: ${error.message}');
+            // En modo debug, mostrar el test device ID
+            if (kDebugMode) {
+              debugPrint('🔍 Para obtener tu Test Device ID, busca en los logs algo como:');
+              debugPrint('   "Use RequestConfiguration.Builder.setTestDeviceIds"');
+            }
+
             _isBannerAdReady = false;
             ad.dispose();
             

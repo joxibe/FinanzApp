@@ -12,7 +12,7 @@ class CategoryExpensesCard extends StatelessWidget {
   final DateTime selectedDate;
   final bool isAnnualView;
 
-  const CategoryExpensesCard({
+  CategoryExpensesCard({
     super.key,
     required this.selectedDate,
     required this.isAnnualView,
@@ -22,8 +22,12 @@ class CategoryExpensesCard extends StatelessWidget {
     return category.color;
   }
 
+  int touchedIndex = -1;
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Consumer<AppState>(
       builder: (context, appState, child) {
         // Filtrar transacciones según la vista seleccionada
@@ -116,6 +120,18 @@ class CategoryExpensesCard extends StatelessWidget {
         // Separar categorías en fijos y hormiga para la leyenda
         final legendFijos = categories.where((cat) => cat['type'] == 'Fijo').toList();
         final legendHormiga = categories.where((cat) => cat['type'] == 'Hormiga').toList();
+        final fijoTotal = legendFijos.fold<double>(0, (sum, cat) => sum + cat['amount']);
+        final hormigaTotal = legendHormiga.fold<double>(0, (sum, cat) => sum + cat['amount']);
+
+        // Colores adaptativos para modo oscuro
+        final fixedLabelColor = isDark ? const Color(0xFF8BA4FF) : Colors.blue[700]!;
+        final hormigaLabelColor = isDark ? const Color(0xFFDDA0DD) : Colors.purple[700]!;
+        final fixedBgColor = isDark 
+          ? const Color(0xFF8BA4FF).withOpacity(0.15) 
+          : Colors.blue.shade100.withOpacity(0.35);
+        final hormigaBgColor = isDark 
+          ? const Color(0xFFDDA0DD).withOpacity(0.15) 
+          : Colors.purple.shade100.withOpacity(0.35);
 
         return Card(
           child: Padding(
@@ -139,63 +155,254 @@ class CategoryExpensesCard extends StatelessWidget {
                     ),
                   )
                 else ...[
-                  SizedBox(
-                    height: 280,
-                    child: PieChart(
-                      PieChartData(
-                        sections: [
-                          for (var cat in categories)
-                            PieChartSectionData(
-                              color: cat['color'] as Color,
-                              value: cat['amount'] as double,
-                              title: '${(cat['percentage'] as double).toStringAsFixed(1)}%',
-                              radius: 60,
-                              titleStyle: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black87,
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      final overlayTextColor = isDark ? Colors.white : Colors.black;
+                      
+                      return Column(
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Overlay para porcentaje
+                              if (touchedIndex >= 0 && touchedIndex < categories.length)
+                                Positioned(
+                                  top: -10,
+                                  left: 0,
+                                  right: 0,
+                                  child: Center(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: isDark 
+                                          ? const Color(0xFF2C2D31).withOpacity(0.9)
+                                          : Colors.white.withOpacity(0.9),
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.1),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Text(
+                                        '${(categories[touchedIndex]['percentage'] as double).toStringAsFixed(1)}%',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: overlayTextColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              
+                              // Etiquetas mejoradas
+                              Positioned(
+                                left: 10,
+                                top: 10,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: hormigaBgColor,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: hormigaLabelColor.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Gasto Hormiga',
+                                    style: TextStyle(
+                                      color: hormigaLabelColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              titlePositionPercentageOffset: 1.35,
-                              badgeWidget: null,
+                              
+                              Positioned(
+                                right: 10,
+                                bottom: 10,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: fixedBgColor,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: fixedLabelColor.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Gasto Fijo',
+                                    style: TextStyle(
+                                      color: fixedLabelColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // Donut exterior
+                              SizedBox(
+                                height: 280,
+                                width: 280,
+                                child: PieChart(
+                                  PieChartData(
+                                    sectionsSpace: 2,
+                                    centerSpaceRadius: 100,
+                                    startDegreeOffset: 270,
+                                    sections: [
+                                      PieChartSectionData(
+                                        value: fijoTotal,
+                                        color: fixedLabelColor.withOpacity(0.2),
+                                        showTitle: false,
+                                        radius: 10,
+                                      ),
+                                      PieChartSectionData(
+                                        value: hormigaTotal,
+                                        color: hormigaLabelColor.withOpacity(0.2),
+                                        showTitle: false,
+                                        radius: 10,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              
+                              // Donut interno con GestureDetector
+                              GestureDetector(
+                                onTapDown: (details) {
+                                  // Convertir coordenadas locales a coordenadas del centro del gráfico
+                                  final center = Offset(130, 130); // Centro del widget de 260x260
+                                  final tapPosition = details.localPosition - center;
+                                  
+                                  // Calcular la distancia desde el centro
+                                  final distance = tapPosition.distance;
+                                  
+                                  // Verificar si el toque está dentro del donut (entre radio 40 y 90)
+                                  if (distance >= 40 && distance <= 90) {
+                                    // Calcular el ángulo del toque
+                                    double angle = (tapPosition.direction * 180 / 3.14159 + 360 + 90) % 360;
+                                    
+                                    // Calcular qué sección fue tocada
+                                    double currentAngle = 0;
+                                    int tappedSection = -1;
+                                    
+                                    for (int i = 0; i < categories.length; i++) {
+                                      final sectionAngle = (categories[i]['amount'] as double) / totalExpenses * 360;
+                                      if (angle >= currentAngle && angle < currentAngle + sectionAngle) {
+                                        tappedSection = i;
+                                        break;
+                                      }
+                                      currentAngle += sectionAngle;
+                                    }
+                                    
+                                    if (tappedSection != -1) {
+                                      setState(() {
+                                        // Toggle: si tocamos la misma sección, la deseleccionamos
+                                        if (touchedIndex == tappedSection) {
+                                          touchedIndex = -1;
+                                        } else {
+                                          // Si tocamos una sección diferente, la seleccionamos
+                                          touchedIndex = tappedSection;
+                                        }
+                                      });
+                                    }
+                                  }
+                                },
+                                child: SizedBox(
+                                  height: 260,
+                                  width: 260,
+                                  child: PieChart(
+                                    PieChartData(
+                                      sections: [
+                                        for (int i = 0; i < categories.length; i++)
+                                          PieChartSectionData(
+                                            color: categories[i]['color'] as Color,
+                                            value: categories[i]['amount'] as double,
+                                            title: '',
+                                            radius: touchedIndex == i ? 65 : 60,
+                                            titleStyle: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark ? Colors.white : Colors.black,
+                                            ),
+                                            titlePositionPercentageOffset: 1.3,
+                                          ),
+                                      ],
+                                      sectionsSpace: 2,
+                                      centerSpaceRadius: 40,
+                                      startDegreeOffset: 270,
+                                      pieTouchData: PieTouchData(
+                                        enabled: false, // Deshabilitamos el touch nativo
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Total',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                Text(
+                                  NumberFormatter.formatCurrency(totalExpenses),
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
                         ],
-                        sectionsSpace: 2,
-                        centerSpaceRadius: 36,
-                        startDegreeOffset: 270,
-                        pieTouchData: PieTouchData(
-                          touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                            // Opcional: manejar toques en el gráfico
-                          },
-                        ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
+
                   const SizedBox(height: 16),
+                  
+                  // Sección de gastos fijos
                   if (legendFijos.isNotEmpty) ...[
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 4),
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.07),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.blue.withOpacity(0.08),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                        color: fixedBgColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: fixedLabelColor.withOpacity(0.2),
+                          width: 1,
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.arrow_back, color: Colors.blue, size: 20),
-                          const SizedBox(width: 6),
+                          Icon(
+                            Icons.account_balance_wallet,
+                            color: fixedLabelColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
                           Text(
                             'Gastos fijos',
                             style: TextStyle(
-                              color: Colors.blue[800],
+                              color: fixedLabelColor,
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
                             ),
@@ -203,8 +410,17 @@ class CategoryExpensesCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    ...legendFijos.map((cat) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
+                    ...legendFijos.map((cat) => Container(
+                      margin: const EdgeInsets.symmetric(vertical: 1),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                          width: 0.5,
+                        ),
+                      ),
                       child: Row(
                         children: [
                           Container(
@@ -213,47 +429,81 @@ class CategoryExpensesCard extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: cat['color'] as Color,
                               shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (cat['color'] as Color).withOpacity(0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 12),
                           Expanded(
+                            flex: 4,
                             child: Text(
                               cat['name'] as String,
-                              style: const TextStyle(fontSize: 14),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                             ),
                           ),
-                          Text(
-                            NumberFormatter.formatCurrency(cat['amount'] as double),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              '${(cat['percentage'] as double).toStringAsFixed(1)}%',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              NumberFormatter.formatCurrency(cat['amount'] as double),
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     )),
                   ],
+                  
+                  // Sección de gastos hormiga
                   if (legendHormiga.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 4),
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.purple.withOpacity(0.07),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.purple.withOpacity(0.08),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                        color: hormigaBgColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: hormigaLabelColor.withOpacity(0.2),
+                          width: 1,
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.arrow_back, color: Colors.purple, size: 20),
-                          const SizedBox(width: 6),
+                          Icon(
+                            Icons.trending_up,
+                            color: hormigaLabelColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
                           Text(
                             'Gastos hormiga',
                             style: TextStyle(
-                              color: Colors.purple[800],
+                              color: hormigaLabelColor,
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
                             ),
@@ -261,8 +511,17 @@ class CategoryExpensesCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    ...legendHormiga.map((cat) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
+                    ...legendHormiga.map((cat) => Container(
+                      margin: const EdgeInsets.symmetric(vertical: 1),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                          width: 0.5,
+                        ),
+                      ),
                       child: Row(
                         children: [
                           Container(
@@ -271,18 +530,49 @@ class CategoryExpensesCard extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: cat['color'] as Color,
                               shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (cat['color'] as Color).withOpacity(0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 12),
                           Expanded(
+                            flex: 4,
                             child: Text(
                               cat['name'] as String,
-                              style: const TextStyle(fontSize: 14),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                             ),
                           ),
-                          Text(
-                            NumberFormatter.formatCurrency(cat['amount'] as double),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              '${(cat['percentage'] as double).toStringAsFixed(1)}%',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              NumberFormatter.formatCurrency(cat['amount'] as double),
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -296,4 +586,4 @@ class CategoryExpensesCard extends StatelessWidget {
       },
     );
   }
-} 
+}

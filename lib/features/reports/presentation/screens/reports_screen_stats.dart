@@ -275,7 +275,19 @@ class StatisticsCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 _AhorroPotencialItem(
-                  amount: NumberFormatter.formatCurrency(totalFixedIncome),
+                  amount: NumberFormatter.formatCurrency(
+                    totalFixedIncome +
+                    (isAnnualView
+                      ? appState.antTransactions
+                          .where((t) => t.date.year == selectedDate.year)
+                          .where((t) => t.type == AntTransactionType.income)
+                          .fold<double>(0, (sum, t) => sum + t.amount)
+                      : appState.antTransactions
+                          .where((t) => t.date.year == selectedDate.year && t.date.month == selectedDate.month)
+                          .where((t) => t.type == AntTransactionType.income)
+                          .fold<double>(0, (sum, t) => sum + t.amount)
+                    )
+                  ),
                   onTap: () => showBudgetRuleDialog(context, appState, selectedDate, isAnnualView),
                 ),
                 const SizedBox(height: 12),
@@ -1223,6 +1235,7 @@ class _BudgetCategoryItem extends StatelessWidget {
   final String currentAmount;
   final String recommendedAmount;
   final VoidCallback onInfoTap;
+  final List<dynamic>? antTransactions;
 
   const _BudgetCategoryItem({
     required this.title,
@@ -1231,6 +1244,7 @@ class _BudgetCategoryItem extends StatelessWidget {
     required this.currentAmount,
     required this.recommendedAmount,
     required this.onInfoTap,
+    this.antTransactions,
   });
 
   @override
@@ -1279,13 +1293,34 @@ class _BudgetCategoryItem extends StatelessWidget {
                       color: color,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      item,
-                      style: const TextStyle(fontSize: 13),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(
+                            item,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          if (title == '30% Gastos Personales' && item == 'Gastos hormiga' && antTransactions != null) ...[
+                            const Spacer(),
+                            Text(
+                              NumberFormatter.formatCurrency(
+                                antTransactions!
+                                  .where((t) => t.type == AntTransactionType.expense)
+                                  .fold(0.0, (sum, t) => sum + t.amount),
+                              ),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: color,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              )),
+              )).toList(),
           const SizedBox(height: 4),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1307,6 +1342,52 @@ class _BudgetCategoryItem extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _IncomeSummaryItem extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final String amount;
+
+  const _IncomeSummaryItem({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.amount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: color,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          amount,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: color,
+            fontSize: 16,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1342,6 +1423,14 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
       .where((t) => t.type == FixedTransactionType.income)
       .fold(0.0, (sum, t) => sum + t.amount);
 
+  // Calcular ingresos hormiga totales según la vista
+  final totalAntIncome = filteredAntTransactions
+      .where((t) => t.type == AntTransactionType.income)
+      .fold(0.0, (sum, t) => sum + t.amount);
+
+  // Usar la suma de ambos ingresos para los cálculos recomendados
+  final totalIncome = totalFixedIncome + totalAntIncome;
+
   // Calcular gastos actuales por categoría según la regla 50/30/20
   double necesidadesBasicas = 0.0;
   double gastosPersonales = 0.0;
@@ -1372,9 +1461,9 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
   gastosPersonales += totalAntExpenses;
 
   // Calcular montos recomendados según la regla 50/30/20
-  final necesidadesBasicasRecomendado = totalFixedIncome * 0.5;
-  final gastosPersonalesRecomendado = totalFixedIncome * 0.3;
-  final ahorroInversionRecomendado = totalFixedIncome * 0.2;
+  final necesidadesBasicasRecomendado = totalIncome * 0.5;
+  final gastosPersonalesRecomendado = totalIncome * 0.3;
+  final ahorroInversionRecomendado = totalIncome * 0.2;
 
   showDialog(
     context: context,
@@ -1388,6 +1477,34 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
             const Text(
               'La regla 50/30/20 es una estrategia de presupuesto que divide tus ingresos en tres categorías:',
               style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            // Mostrar totales de ingresos fijos y hormiga en vertical
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _IncomeSummaryItem(
+                  icon: Icons.account_balance_wallet,
+                  color: Colors.green,
+                  label: 'Ingresos Fijos',
+                  amount: NumberFormatter.formatCurrency(
+                    filteredFixedTransactions
+                      .where((t) => t.type == FixedTransactionType.income)
+                      .fold(0.0, (sum, t) => sum + t.amount),
+                  ),
+                ),
+                SizedBox(height: 8),
+                _IncomeSummaryItem(
+                  icon: Icons.trending_up,
+                  color: Colors.purple,
+                  label: 'Ingresos Hormiga',
+                  amount: NumberFormatter.formatCurrency(
+                    filteredAntTransactions
+                      .where((t) => t.type == AntTransactionType.income)
+                      .fold(0.0, (sum, t) => sum + t.amount),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             _BudgetCategoryItem(
@@ -1528,6 +1645,7 @@ void showBudgetRuleDialog(BuildContext context, AppState appState, DateTime sele
                   ),
                 );
               },
+              antTransactions: filteredAntTransactions,
             ),
             const SizedBox(height: 16),
             _BudgetCategoryItem(

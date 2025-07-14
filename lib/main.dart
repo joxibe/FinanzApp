@@ -23,6 +23,11 @@ void main() async {
   // Inicializar AdMob
   await MobileAds.instance.initialize();
 
+  // Configurar automáticamente según el modo
+  MobileAds.instance.updateRequestConfiguration(
+    AdHelper.getRequestConfiguration(),
+  );
+
   // Inicializar la base de datos
   final dbService = DatabaseService();
   await dbService.init();
